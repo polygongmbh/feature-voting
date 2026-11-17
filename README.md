@@ -57,6 +57,11 @@ location /api/stream {
 
 Caddy und Traefik brauchen dafür keine Extra-Einstellung.
 
+## Ohne Node und Docker (PHP-Hosting)
+
+Für Webspace mit PHP, z.B. HestiaCP, gibt es einen PHP-Port mit demselben Frontend:
+siehe [`php/README.md`](php/README.md).
+
 ## Wie gewertet wird
 
 Pro Feature und Antwort:

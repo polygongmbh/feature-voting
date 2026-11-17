@@ -54,6 +54,8 @@ No lint or test suite yet.
 - `public/index.html` + `survey.js` + `style.css` — the survey (drag & drop, own ideas, DE/EN, local draft).
 - `public/live.html` + `live.js` + `live.css` — token-protected live view (bars, cluster, own ideas).
 - `config.json` — texts, TestFlight link, feature list; mounted read-only in Docker.
+- `public/backend.js` — endpoint URLs and live transport (SSE for Node, polling for PHP), switched by `<meta name="fv-backend">`.
+- `php/` — PHP port (`api.php`) and `build.sh`, which assembles a HestiaCP layout from `public/`; see `php/README.md`.
 
 ## Invariants
 
@@ -62,6 +64,8 @@ No lint or test suite yet.
 - No IP addresses persisted; the IP lives only in memory for the rate limit.
 - The admin token is stripped from the address bar after load, so it never shows on a projector.
 - `/api/stream` is SSE: any proxy in front must not buffer it.
+- Scoring and validation exist twice, in `server.js` and `php/api.php`: change both in the same commit.
+- `public/` stays backend-agnostic: no hardcoded API paths outside `public/backend.js`.
 
 ## Deployment
 
