@@ -27,8 +27,6 @@ Projektor-Lesbarkeit bleibt harte Anforderung (Janek, 11:59).
 
 - Echte Feature-Liste (bisher Platzhalter)
 - Titel und Intro an die App anpassen
-- Link auf der Danke-Seite zeigt auf `https://campus.polygon.gmbh`;
-  klären, ob dort noch ein TestFlight-Link hin soll (ursprüngliche Anforderung, 11:04)
 
 ## Wertung unberührter Features
 
@@ -40,5 +38,6 @@ dann muss das Frontend mitschicken, welche Karten bewegt wurden.
 
 ## Nicht getestet
 
-- Touch-Drag am Griff in echtem iOS Safari
-  (getestet nur mit Playwright/Chromium im iPhone-Viewport)
+- Ziehen der ganzen Zeile (kurz halten) auf echten Geräten, vor allem iOS Safari;
+  Janek testet selbst
+- QR-Startbildschirm der Live-Ansicht am Beamer
