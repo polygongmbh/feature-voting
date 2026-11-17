@@ -21,6 +21,7 @@
           <button type="button" data-view="cluster">Cluster</button>
           <button type="button" data-view="qr" title="Taste Q">QR</button>
           <button type="button" data-view="options">Optionen</button>
+          <button type="button" data-view="responses">Antworten</button>
         </div>
         <a id="exportLink" class="export" href="#" hidden>CSV</a>
       </div>
@@ -49,17 +50,20 @@
         <div class="bubbles" id="bubbles"></div>
       </section>
 
-      <section class="view view-options" id="view-options">
-        <form id="tokenForm" class="token-form" hidden>
-          <h2>Optionen bearbeiten</h2>
-          <p>Zum Bearbeiten den Admin-Token eingeben. Er schützt die Liste, damit nicht alle die Umfrage ändern können.</p>
+      <section class="view view-options view-token" id="view-token">
+        <form id="tokenForm" class="token-form">
+          <h2>Admin-Token</h2>
+          <p>Optionen und einzelne Antworten (mit Namen und E-Mail) sind geschützt. Bitte den Admin-Token eingeben.</p>
           <div class="opt-row-actions">
             <input id="tokenInput" type="password" autocomplete="current-password" placeholder="Admin-Token" required>
             <button type="submit" class="opt-btn primary">Weiter</button>
           </div>
           <p id="tokenError" class="opt-error" hidden>Token ungültig.</p>
         </form>
-        <form id="optForm" class="opt-form" hidden>
+      </section>
+
+      <section class="view view-options" id="view-options">
+        <form id="optForm" class="opt-form">
           <div class="opt-head">
             <h2>Optionen der Umfrage</h2>
             <p>Änderungen gelten sofort für alle, die die Umfrage neu öffnen. Wer schon geantwortet hat, behält die alte Wertung; gelöschte Optionen fallen aus der Auswertung.</p>
@@ -72,6 +76,15 @@
             <button type="submit" class="opt-btn primary">Speichern</button>
           </div>
         </form>
+      </section>
+
+      <section class="view view-options view-responses" id="view-responses">
+        <div class="opt-head">
+          <h2>Antworten <span id="respCount" class="resp-count"></span></h2>
+          <p>Neueste zuerst. Testantworten oder Unsinn hier löschen; die Auswertung passt sich sofort an.</p>
+        </div>
+        <ol id="respList" class="resp-list"></ol>
+        <p id="respEmpty" class="ideas-empty" hidden>Noch keine Antworten.</p>
       </section>
 
       <aside class="ideas">

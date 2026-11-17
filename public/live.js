@@ -74,6 +74,7 @@
   function update(data) {
     $('#title').textContent = data.title || 'Live-Auswertung';
     document.title = 'Live: ' + (data.title || 'Auswertung');
+    if (view === 'responses' && token && data.total !== total) openResponses();
     total = data.total;
     if (autoQr && total > 0) { autoQr = false; if (view === 'qr') setView('ranking'); }
     syncJoin();
@@ -292,9 +293,13 @@
     // the QR tab is a fullscreen overlay above the last real view
     const shown = view === 'qr' ? lastView : view;
     document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + shown));
-    $('#app').classList.toggle('editing', shown === 'options');
+    const admin = ADMIN_VIEWS[shown];
+    // admin tabs show the token form first when no token is known
+    if (admin && !token) document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-token'));
+    $('#app').classList.toggle('editing', !!admin);
     syncJoin();
-    if (shown === 'options') openOptions();
+    if (admin && !token) $('#tokenInput').focus();
+    else if (admin) admin();
     else if (prev) { const p = prev; renderCluster(p, new Map()); renderRanking(p, new Map(p.features.map((f, i) => [f.id, { ...f, pos: i }]))); }
   }
   document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
@@ -305,9 +310,6 @@
     .replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'option';
 
   async function openOptions() {
-    if (!token) { $('#tokenForm').hidden = false; $('#optForm').hidden = true; $('#tokenInput').focus(); return; }
-    $('#tokenForm').hidden = true;
-    $('#optForm').hidden = false;
     if (optLoaded) return;
     const cfg = await fetch('/api/config').then(r => r.json());
     $('#optList').replaceChildren(...cfg.features.map(optRow));
@@ -365,7 +367,7 @@
       const res = await fetch('/api/features?token=' + encodeURIComponent(token), {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ features }),
       });
-      if (res.status === 401) { token = ''; ss.set(TOKEN_KEY, ''); optLoaded = false; return openOptions(); }
+      if (res.status === 401) return dropToken();
       const out = await res.json();
       if (!res.ok) throw new Error(out.error);
       $('#optList').replaceChildren(...out.features.map(optRow));
@@ -384,8 +386,66 @@
     token = t; ss.set(TOKEN_KEY, t);
     $('#exportLink').hidden = false;
     $('#exportLink').href = '/api/export.csv?token=' + encodeURIComponent(token);
-    openOptions();
+    setView(view);
   });
+
+  function dropToken() {
+    token = ''; ss.set(TOKEN_KEY, '');
+    $('#exportLink').hidden = true;
+    $('#tokenError').hidden = false;
+    setView(view);
+  }
+
+  // ---------- Antworten ansehen und löschen (needs the admin token) ----------
+  const fmtTime = iso => new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  async function openResponses() {
+    const [cfg, res] = await Promise.all([
+      fetch('/api/config').then(r => r.json()),
+      fetch('/api/responses?token=' + encodeURIComponent(token)),
+    ]);
+    if (res.status === 401) return dropToken();
+    const { responses } = await res.json();
+    const titleOf = (r, id) => tx(cfg.features.find(f => f.id === id)?.title) || r.custom.find(c => c.id === id)?.text || id;
+    $('#respCount').textContent = responses.length || '';
+    $('#respEmpty').hidden = responses.length > 0;
+    $('#respList').replaceChildren(...responses.map(r => {
+      const li = document.createElement('li');
+      li.className = 'resp';
+      const head = document.createElement('div');
+      head.className = 'resp-head';
+      const who = document.createElement('strong');
+      who.textContent = [r.name, r.email].filter(Boolean).join(' · ') || 'anonym';
+      const meta = document.createElement('span');
+      meta.className = 'resp-meta';
+      meta.textContent = fmtTime(r.created_at) + (r.lang ? ' · ' + r.lang.toUpperCase() : '');
+      const del = document.createElement('button');
+      del.type = 'button'; del.className = 'opt-btn resp-del'; del.textContent = 'Löschen';
+      del.addEventListener('click', async () => {
+        if (!confirm('Diese Antwort endgültig löschen?')) return;
+        const d = await fetch(`/api/responses/${r.id}?token=` + encodeURIComponent(token), { method: 'DELETE' });
+        if (d.status === 401) return dropToken();
+        openResponses();
+      });
+      head.append(who, meta, del);
+      li.append(head);
+      for (const [b, label] of [['want', '🔥'], ['nice', '✨'], ['no', '💤']]) {
+        const ids = r.buckets[b] || [];
+        if (!ids.length) continue;
+        const p = document.createElement('p');
+        p.className = 'resp-line resp-' + b;
+        p.textContent = label + ' ' + ids.map((id, i) => (b === 'want' ? `${i + 1}. ` : '') + titleOf(r, id)).join(', ');
+        li.append(p);
+      }
+      for (const [id, text] of Object.entries(r.comments)) {
+        const p = document.createElement('p');
+        p.className = 'resp-comment';
+        p.textContent = `💬 ${titleOf(r, id)}: ${text}`;
+        li.append(p);
+      }
+      return li;
+    }));
+  }
+  const ADMIN_VIEWS = { options: openOptions, responses: openResponses };
   let resizeT;
   addEventListener('resize', () => {
     clearTimeout(resizeT);
