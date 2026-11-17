@@ -21,8 +21,8 @@
   },
   "maxCustomIdeas": 5,
   "features": [
-    { "id": "unimail", "title": { "de": "Integration Unimail-Postfach", "en": "Uni mail inbox integration" } },
-    { "id": "file-sharing", "title": { "de": "File Sharing", "en": "File sharing" } },
+    { "id": "unimail", "title": { "de": "Integration Unimail-Postfach", "en": "Uni mail inbox integration" }, "desc": { "de": "Ohne extra Login, direkt bei den Nachrichten und Benachrichtigungen", "en": "No extra login, right next to messages and notifications" } },
+    { "id": "file-sharing", "title": { "de": "File Sharing", "en": "File sharing" }, "desc": { "de": "Mit Mitstudierenden und in Teamchats", "en": "With fellow students and in team chats" } },
     { "id": "kalender", "title": { "de": "Kalenderübersicht", "en": "Calendar overview" }, "desc": { "de": "mit cmlife", "en": "with cmlife" } },
     { "id": "studentenausweis", "title": { "de": "Integration Studentenausweis", "en": "Student ID integration" }, "desc": { "de": "Mensa-Zahlung, Ticket", "en": "Cafeteria payment, ticket" } },
     { "id": "buchung", "title": { "de": "Buchungsfunktion ausbauen", "en": "Extended booking" }, "desc": { "de": "mehr Räume & Hochschulsport", "en": "More rooms & university sports" } },
