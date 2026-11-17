@@ -209,17 +209,15 @@
     // keep bubbles below the zone headings
     const label = area.parentElement.querySelector('.zone span');
     const topPad = label ? label.offsetTop + label.offsetHeight + 12 : 48;
-    const maxN = Math.max(1, ...data.features.map(f => f.n));
-    // size from the free area: all bubbles together cover about 40 %, so they fit side by side
+    // all bubbles the same size (position and colour already carry the score; vote counts are mostly equal):
+    // together they cover about 40 % of the free area
     const shown = data.features.filter(f => f.n > 0);
-    const rel = f => 0.7 + 0.3 * Math.sqrt(f.n / maxN);
-    const sumSq = shown.reduce((s, f) => s + rel(f) ** 2, 0) || 1;
-    const unit = Math.min(Math.sqrt(0.4 * W * (H - topPad) / (Math.PI / 4 * sumSq)), (H - topPad) * 0.45, W * 0.3);
+    const unit = Math.min(Math.sqrt(0.4 * W * (H - topPad) / (Math.PI / 4 * Math.max(1, shown.length))), (H - topPad) * 0.45, W * 0.3);
 
     // d3-force: x pulled towards the lean (left = will ich, right = brauche ich nicht), collision keeps them apart
     const cy = (topPad + H) / 2;
     const nodes = shown.map(f => {
-      const r = rel(f) * unit / 2;
+      const r = unit / 2;
       const tx = pad + r + (1 - f.lean) * (W - 2 * pad - 2 * r);
       const old = bubblePos.get(f.id);
       return { f, r, tx, x: old ? old.x : tx, y: old ? old.y : cy + (Math.random() - 0.5) * 40 };
@@ -250,7 +248,7 @@
         bubbleEls.set(f.id, el);
       }
       el.querySelector('span').textContent = tx(f.title);
-      el.querySelector('small').textContent = f.n ? `${f.score} · ${f.n}×` : '–';
+      el.querySelector('small').textContent = f.n < data.total ? `${f.score} · ${f.n} von ${data.total}` : String(f.score);
       el.style.width = el.style.height = n.r * 2 + 'px';
       el.style.setProperty('--d', n.r * 2 + 'px');
       el.style.background = bubbleColor(f.n ? f.lean : 0.5);
