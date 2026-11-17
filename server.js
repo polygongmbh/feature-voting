@@ -34,7 +34,11 @@ db.exec(`
     payload TEXT NOT NULL
   );
 `);
-const insertStmt = db.prepare('INSERT INTO responses (id, created_at, name, email, lang, payload) VALUES (?, ?, ?, ?, ?, ?)');
+// edit_key lets the submitter add name/email right after submitting (hash only, the key stays in their browser)
+try { db.exec('ALTER TABLE responses ADD COLUMN edit_key TEXT'); } catch { /* column exists */ }
+const insertStmt = db.prepare('INSERT INTO responses (id, created_at, name, email, lang, payload, edit_key) VALUES (?, ?, ?, ?, ?, ?, ?)');
+const contactStmt = db.prepare('UPDATE responses SET name = ?, email = ? WHERE id = ? AND edit_key = ?');
+const sha256 = s => createHash('sha256').update(s).digest('hex');
 const allStmt = db.prepare('SELECT * FROM responses ORDER BY created_at ASC');
 const deleteStmt = db.prepare('DELETE FROM responses WHERE id = ?');
 
@@ -284,10 +288,24 @@ const server = http.createServer(async (req, res) => {
       const clean = validate(body, getConfig());
       if (typeof clean === 'string') return send(res, 400, { error: clean });
       const id = randomUUID();
+      const key = randomUUID();
       insertStmt.run(id, new Date().toISOString(), clean.name, clean.email, clean.lang,
-        JSON.stringify({ buckets: clean.buckets, custom: clean.custom, comments: clean.comments }));
+        JSON.stringify({ buckets: clean.buckets, custom: clean.custom, comments: clean.comments }), sha256(key));
       scheduleBroadcast();
-      return send(res, 201, { ok: true });
+      return send(res, 201, { ok: true, id, key });
+    }
+
+    // Submitter adds or changes name/email on their own response
+    const contactMatch = req.method === 'PATCH' && url.pathname.match(/^\/api\/responses\/([0-9a-f-]{36})$/);
+    if (contactMatch) {
+      let body;
+      try { body = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: 'invalid json' }); }
+      const name = String(body?.name ?? '').trim().slice(0, 80) || null;
+      const email = String(body?.email ?? '').trim().slice(0, 120) || null;
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return send(res, 400, { error: 'invalid email' });
+      const { changes } = contactStmt.run(name, email, contactMatch[1], sha256(String(body?.key ?? '')));
+      if (!changes) return send(res, 404, { error: 'not found' });
+      return send(res, 200, { ok: true });
     }
 
     // Live view is public (only aggregates and ideas); names/emails stay behind the token in the CSV export
