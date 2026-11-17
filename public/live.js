@@ -14,7 +14,6 @@
   };
 
   let token = params.get('token') || ss.get(TOKEN_KEY) || '';
-  let es = null;
   let prev = null;           // letzter Stand
   let first = true;
   const rowEls = new Map();
@@ -42,21 +41,16 @@
     connect();
   });
 
+  let unsubscribe = null;
   function connect() {
     if (!token) return showGate(false);
-    if (es) es.close();
-    // Token vorab prüfen, weil EventSource keinen Statuscode liefert
-    fetch('/api/stream?token=' + encodeURIComponent(token)).then(res => {
-      if (res.status === 401) { showGate(true); return; }
-      res.body?.cancel();
-      $('#gate').hidden = true;
-      $('#app').hidden = false;
-      $('#exportLink').href = '/api/export.csv?token=' + encodeURIComponent(token);
-      es = new EventSource('/api/stream?token=' + encodeURIComponent(token));
-      es.addEventListener('update', ev => update(JSON.parse(ev.data)));
-      es.onopen = () => $('#liveDot').classList.add('on');
-      es.onerror = () => $('#liveDot').classList.remove('on');
-    }).catch(() => setTimeout(connect, 3000));
+    unsubscribe?.();
+    $('#exportLink').href = fvBackend.urls.export(token);
+    unsubscribe = fvBackend.subscribe(token, {
+      onData: data => { $('#gate').hidden = true; $('#app').hidden = false; update(data); },
+      onUnauthorized: () => showGate(true),
+      onStatus: connected => $('#liveDot').classList.toggle('on', connected),
+    });
   }
 
   // ---------- Update ----------

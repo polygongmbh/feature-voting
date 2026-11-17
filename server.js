@@ -209,6 +209,7 @@ const STATIC = {
   '/style.css': ['public/style.css', 'text/css; charset=utf-8'],
   '/live.css': ['public/live.css', 'text/css; charset=utf-8'],
   '/survey.js': ['public/survey.js', 'text/javascript; charset=utf-8'],
+  '/backend.js': ['public/backend.js', 'text/javascript; charset=utf-8'],
   '/live.js': ['public/live.js', 'text/javascript; charset=utf-8'],
   '/vendor/Sortable.min.js': ['node_modules/sortablejs/Sortable.min.js', 'text/javascript; charset=utf-8'],
 };

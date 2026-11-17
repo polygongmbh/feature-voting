@@ -75,7 +75,7 @@
     if (params.has('reset')) { store.del(DRAFT_KEY); store.del(DONE_KEY); }
 
     try {
-      const res = await fetch('/api/config');
+      const res = await fetch(fvBackend.urls.config, { cache: 'no-store' });
       cfg = await res.json();
     } catch {
       document.body.innerHTML = '<p style="padding:2rem;font-family:system-ui">Konnte die Umfrage nicht laden. / Could not load the survey.</p>';
@@ -356,7 +356,7 @@
 
     const usedCustom = state.custom; // auch unsortierte Ideen mitschicken
     try {
-      const res = await fetch('/api/responses', {
+      const res = await fetch(fvBackend.urls.submit, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
