@@ -257,6 +257,10 @@ const STATIC = {
   '/survey.js': ['public/survey.js', 'text/javascript; charset=utf-8'],
   '/live.js': ['public/live.js', 'text/javascript; charset=utf-8'],
   '/vendor/Sortable.min.js': ['node_modules/sortablejs/Sortable.min.js', 'text/javascript; charset=utf-8'],
+  '/vendor/d3-dispatch.js': ['node_modules/d3-dispatch/dist/d3-dispatch.min.js', 'text/javascript; charset=utf-8'],
+  '/vendor/d3-quadtree.js': ['node_modules/d3-quadtree/dist/d3-quadtree.min.js', 'text/javascript; charset=utf-8'],
+  '/vendor/d3-timer.js': ['node_modules/d3-timer/dist/d3-timer.min.js', 'text/javascript; charset=utf-8'],
+  '/vendor/d3-force.js': ['node_modules/d3-force/dist/d3-force.min.js', 'text/javascript; charset=utf-8'],
   '/vendor/qrcode.js': ['node_modules/qrcode-generator/dist/qrcode.js', 'text/javascript; charset=utf-8'],
 };
 const csvCell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;

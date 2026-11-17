@@ -115,11 +115,12 @@ button { font: inherit; color: inherit; }
   will-change: transform;
 }
 .row.flash { background: #4338ca14; border-color: var(--accent); }
-.row .pos { font-size: 1.7rem; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; text-align: center; }
+.row .pos { font-size: min(1.7rem, calc(var(--h) * .38)); font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; text-align: center; }
 .row.top3 .pos { color: var(--text); }
 .row .name { min-width: 0; }
-.row .name span { font-weight: 750; font-size: 1.55rem; line-height: 1.12; letter-spacing: -.01em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.row .name small { display: block; color: var(--muted); font-weight: 650; font-size: 1.05rem; margin-top: .1rem; }
+.row .name span { font-weight: 750; font-size: min(1.55rem, calc(var(--h) * .34)); line-height: 1.1; letter-spacing: -.01em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.row .name small { display: block; color: var(--muted); font-weight: 650; font-size: min(1.05rem, calc(var(--h) * .2)); margin-top: .1rem; }
+.row .name small:empty { display: none; }
 
 .chart { display: flex; height: 62%; max-height: 3.4rem; min-height: 1.6rem; position: relative; }
 .chart::after { content: ""; position: absolute; top: -.4rem; bottom: -.4rem; left: var(--axis, 20%); width: 3px; background: var(--text); border-radius: 2px; transition: left .9s cubic-bezier(.2, .8, .2, 1); }
@@ -130,8 +131,8 @@ button { font: inherit; color: inherit; }
 .chart i.nice { background: var(--nice); border-radius: 0 .5rem .5rem 0; }
 .chart i.want:last-child { border-radius: 0 .5rem .5rem 0; }
 .chart i.no { background: var(--no); border-radius: .5rem 0 0 .5rem; }
-.chart i b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.35rem; font-weight: 850; color: #fff; }
-.score { font-size: 2.1rem; font-weight: 850; text-align: right; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.chart i b { position: absolute; inset: 0; display: grid; place-items: center; font-size: min(1.35rem, calc(var(--h) * .3)); font-weight: 850; color: #fff; }
+.score { font-size: min(2.1rem, calc(var(--h) * .45)); font-weight: 850; text-align: right; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .delta { position: absolute; right: .2rem; top: -.35rem; font-size: .8rem; font-weight: 850; padding: .1rem .45rem; border-radius: 99px; opacity: 0; transition: opacity .3s; }
 .delta.up { background: var(--want); color: #fff; opacity: 1; }
 .delta.down { background: #dc2626; color: #fff; opacity: 1; }
@@ -148,14 +149,15 @@ button { font: inherit; color: inherit; }
 .bubbles { position: absolute; inset: 0; }
 .bubble {
   position: absolute; left: 0; top: 0; border-radius: 50%;
-  display: grid; place-items: center; text-align: center; padding: 13%;
+  display: grid; place-items: center; text-align: center; padding: calc(var(--d, 10rem) * .13);
   color: #fff; font-weight: 850; line-height: 1.1;
   /* label scales with the bubble (--d = diameter); long German words get hyphenated */
-  font-size: clamp(.8rem, calc(var(--d, 10rem) * .1), 2rem); hyphens: auto; -webkit-hyphens: auto; overflow-wrap: anywhere;
+  font-size: clamp(.8rem, calc(var(--d, 10rem) * .095), 2rem); hyphens: auto; -webkit-hyphens: auto; overflow-wrap: anywhere;
   box-shadow: 0 6px 18px #0b122033;
   transition: transform 1.2s cubic-bezier(.2, .8, .2, 1), width 1.2s cubic-bezier(.2, .8, .2, 1), height 1.2s cubic-bezier(.2, .8, .2, 1), background 1.2s;
   will-change: transform;
 }
+.bubble > div { width: 100%; }
 .bubble span { font-size: 1em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .bubble small { display: block; font-size: .75em; font-weight: 750; opacity: .9; margin-top: .2rem; }
 .bubble.flash { animation: ring 1s ease-out; }

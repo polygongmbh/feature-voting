@@ -120,10 +120,14 @@
     const wrap = $('#rows');
     const feats = data.features;
     const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-    // Zeilenhöhe so wählen, dass alles ohne Scrollen auf den Beamer passt
-    const avail = wrap.clientHeight || 600;
-    const h = Math.max(3.2 * remPx, Math.min(6 * remPx, avail / Math.max(1, feats.length)));
+    // Zeilenhöhe so wählen, dass alles ohne Scrollen auf den Beamer passt;
+    // why: reset the min-height first, otherwise the last layout's height is measured and rows never shrink
+    wrap.style.minHeight = '0px';
+    const avail = wrap.clientHeight;
+    if (!avail) return; // hidden tab: lay out when it is shown
+    const h = Math.max(2.6 * remPx, Math.min(6 * remPx, avail / Math.max(1, feats.length)));
     wrap.style.minHeight = feats.length * h + 'px';
+    wrap.style.setProperty('--h', h + 'px');
 
     // Skala: links "brauche ich nicht", rechts "will ich" + "nett"
     const maxNeg = Math.max(0, ...feats.map(f => f.no));
@@ -155,7 +159,8 @@
       el.classList.toggle('top3', i < 3 && f.n > 0);
       el.querySelector('.pos').textContent = f.n ? i + 1 : '–';
       el.querySelector('.name span').textContent = tx(f.title);
-      el.querySelector('.name small').textContent = f.n ? `${f.n} Stimme${f.n === 1 ? '' : 'n'}` : 'noch keine Stimmen';
+      // vote count only when it differs from the number of answers (otherwise it repeats the same number on every row)
+      el.querySelector('.name small').textContent = !f.n ? 'noch keine Stimmen' : f.n < data.total ? `${f.n} von ${data.total}` : '';
 
       const chart = el.querySelector('.chart');
       chart.style.setProperty('--axis', axis + '%');
@@ -198,55 +203,37 @@
 
   function renderCluster(data, prevById) {
     const area = $('#bubbles');
-    const W = area.clientWidth || 900, H = area.clientHeight || 600;
-    const maxN = Math.max(1, ...data.features.map(f => f.n));
+    const W = area.clientWidth, H = area.clientHeight;
+    if (!W || !H) return; // hidden tab: lay out when it is shown
     const pad = 12;
     // keep bubbles below the zone headings
     const label = area.parentElement.querySelector('.zone span');
     const topPad = label ? label.offsetTop + label.offsetHeight + 12 : 48;
-    // size from the free area: all bubbles together cover about a third of it, so they fit without piling up
+    const maxN = Math.max(1, ...data.features.map(f => f.n));
+    // size from the free area: all bubbles together cover about 40 %, so they fit side by side
     const shown = data.features.filter(f => f.n > 0);
-    const rel = f => 0.65 + 0.35 * Math.sqrt(f.n / maxN);
+    const rel = f => 0.7 + 0.3 * Math.sqrt(f.n / maxN);
     const sumSq = shown.reduce((s, f) => s + rel(f) ** 2, 0) || 1;
-    const unit = Math.min(Math.sqrt(0.34 * W * (H - topPad) / (Math.PI / 4 * sumSq)), Math.min(W, H - topPad) * 0.4);
+    const unit = Math.min(Math.sqrt(0.4 * W * (H - topPad) / (Math.PI / 4 * sumSq)), (H - topPad) * 0.45, W * 0.3);
 
+    // d3-force: x pulled towards the lean (left = will ich, right = brauche ich nicht), collision keeps them apart
+    const cy = (topPad + H) / 2;
     const nodes = shown.map(f => {
-      const d = rel(f) * unit;
-      const tx = pad + d / 2 + (1 - f.lean) * (W - d - pad * 2);
+      const r = rel(f) * unit / 2;
+      const tx = pad + r + (1 - f.lean) * (W - 2 * pad - 2 * r);
       const old = bubblePos.get(f.id);
-      return {
-        f, r: d / 2, tx,
-        x: old ? old.x : tx,
-        y: old ? old.y : topPad + Math.random() * (H - topPad - d) + d / 2,
-      };
+      return { f, r, tx, x: old ? old.x : tx, y: old ? old.y : cy + (Math.random() - 0.5) * 40 };
     });
-
-    const cy = (H + topPad) / 2;
-    for (let it = 0; it < 260; it++) {
-      for (const n of nodes) {
-        n.x += (n.tx - n.x) * 0.08;
-        n.y += (cy - n.y) * 0.01;
-      }
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const a = nodes[i], b = nodes[j];
-          let dx = b.x - a.x, dy = b.y - a.y;
-          let dist = Math.hypot(dx, dy) || 0.01;
-          const min = a.r + b.r + 6;
-          if (dist < min) {
-            if (dist < 0.02) { dx = Math.random() - 0.5; dy = Math.random() - 0.5; dist = Math.hypot(dx, dy); }
-            const push = (min - dist) / 2;
-            const ux = dx / dist, uy = dy / dist;
-            a.x -= ux * push * 0.4; a.y -= uy * push;
-            b.x += ux * push * 0.4; b.y += uy * push;
-          }
-        }
-      }
-      for (const n of nodes) {
-        n.x = Math.max(n.r + pad, Math.min(W - n.r - pad, n.x));
-        n.y = Math.max(n.r + topPad, Math.min(H - n.r - pad, n.y));
-      }
-    }
+    const clamp = n => {
+      n.x = Math.max(n.r + pad, Math.min(W - n.r - pad, n.x));
+      n.y = Math.max(n.r + topPad, Math.min(H - n.r - pad, n.y));
+    };
+    const sim = d3.forceSimulation(nodes)
+      .force('x', d3.forceX(n => n.tx).strength(0.12))
+      .force('y', d3.forceY(cy).strength(0.04))
+      .force('collide', d3.forceCollide(n => n.r + 6).strength(1).iterations(4))
+      .stop();
+    for (let i = 0; i < 300; i++) { sim.tick(); nodes.forEach(clamp); }
 
     const live = new Set();
     for (const n of nodes) {
@@ -265,9 +252,9 @@
       el.querySelector('span').textContent = tx(f.title);
       el.querySelector('small').textContent = f.n ? `${f.score} · ${f.n}×` : '–';
       el.style.width = el.style.height = n.r * 2 + 'px';
+      el.style.setProperty('--d', n.r * 2 + 'px');
       el.style.background = bubbleColor(f.n ? f.lean : 0.5);
       el.style.opacity = f.n ? 1 : 0.35;
-      el.style.setProperty('--d', n.r * 2 + 'px');
       requestAnimationFrame(() => { el.style.transform = `translate(${n.x - n.r}px, ${n.y - n.r}px)`; });
       if (!first && changed(f, prevById.get(f.id))) {
         el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
