@@ -26,6 +26,9 @@
     { "id": "kalender", "title": { "de": "Kalenderübersicht", "en": "Calendar overview" }, "desc": { "de": "mit cmlife", "en": "with cmlife" } },
     { "id": "studentenausweis", "title": { "de": "Integration Studentenausweis", "en": "Student ID integration" }, "desc": { "de": "Mensa-Zahlung, Ticket", "en": "Cafeteria payment, ticket" } },
     { "id": "buchung", "title": { "de": "Buchungsfunktion ausbauen", "en": "Extended booking" }, "desc": { "de": "mehr Räume & Hochschulsport", "en": "More rooms & university sports" } },
-    { "id": "security", "title": { "de": "Security", "en": "Security" }, "desc": { "de": "PIN bei Abwesenheit", "en": "PIN when away" } }
+    { "id": "security", "title": { "de": "Security", "en": "Security" }, "desc": { "de": "PIN bei Abwesenheit", "en": "PIN when away" } },
+    { "id": "auto-enrollment", "title": { "de": "Auto-Einschreibung mit cmlife", "en": "Auto-enrollment with cmlife" }, "desc": { "de": "Mit einem Klick in cmlife und im passenden E-Learning-Kurs angemeldet", "en": "One click signs you up in cmlife and the matching e-learning course" } },
+    { "id": "mensa", "title": { "de": "Mensa-Speiseplan", "en": "Cafeteria menu" }, "desc": { "de": "Was es heute und diese Woche gibt", "en": "What's on today and this week" } },
+    { "id": "campus-map", "title": { "de": "Campus-Karte", "en": "Campus map" }, "desc": { "de": "Gebäude, Räume und Wege auf dem Campus finden", "en": "Find buildings, rooms and routes on campus" } }
   ]
 }
