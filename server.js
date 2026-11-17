@@ -36,6 +36,7 @@ db.exec(`
 `);
 const insertStmt = db.prepare('INSERT INTO responses (id, created_at, name, email, lang, payload) VALUES (?, ?, ?, ?, ?, ?)');
 const allStmt = db.prepare('SELECT * FROM responses ORDER BY created_at ASC');
+const deleteStmt = db.prepare('DELETE FROM responses WHERE id = ?');
 
 // ---------- Konfiguration (wird bei Änderungen ohne Neustart übernommen) ----------
 let configCache = null;
@@ -175,7 +176,17 @@ function validate(body, cfg) {
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'invalid email';
   const lang = ['de', 'en'].includes(body.lang) ? body.lang : null;
 
-  return { buckets, custom: cleanCustom, name, email, lang };
+  // optional comment per feature or own idea
+  const comments = {};
+  if (body.comments && typeof body.comments === 'object') {
+    for (const [id, v] of Object.entries(body.comments)) {
+      if (!featureIds.has(id) && !customIds.has(id)) continue;
+      const text = String(v ?? '').trim().slice(0, 500);
+      if (text) comments[id] = text;
+    }
+  }
+
+  return { buckets, custom: cleanCustom, comments, name, email, lang };
 }
 
 // ---------- Live-Verbindungen (Server-Sent Events) ----------
@@ -269,12 +280,12 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && url.pathname === '/api/responses') {
       if (rateLimited(clientIp(req))) return send(res, 429, { error: 'rate limited' });
       let body;
-      try { body = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: 'invalid json' }); }
+      try { body = JSON.parse(await readBody(req, 64 * 1024)); } catch { return send(res, 400, { error: 'invalid json' }); }
       const clean = validate(body, getConfig());
       if (typeof clean === 'string') return send(res, 400, { error: clean });
       const id = randomUUID();
       insertStmt.run(id, new Date().toISOString(), clean.name, clean.email, clean.lang,
-        JSON.stringify({ buckets: clean.buckets, custom: clean.custom }));
+        JSON.stringify({ buckets: clean.buckets, custom: clean.custom, comments: clean.comments }));
       scheduleBroadcast();
       return send(res, 201, { ok: true });
     }
@@ -297,7 +308,7 @@ const server = http.createServer(async (req, res) => {
       if (!isAdmin(url)) return send(res, 401, { error: 'unauthorized' });
       const cfg = getConfig();
       const ids = cfg.features.map(f => f.id);
-      const header = ['id', 'created_at', 'name', 'email', 'lang', ...ids, 'custom_ideas'];
+      const header = ['id', 'created_at', 'name', 'email', 'lang', ...ids, 'custom_ideas', 'comments'];
       const lines = [header.map(csvCell).join(',')];
       for (const r of allStmt.all()) {
         const p = JSON.parse(r.payload);
@@ -312,11 +323,33 @@ const server = http.createServer(async (req, res) => {
           const b = BUCKETS.find(b => (p.buckets[b] || []).includes(c.id)) || 'unsorted';
           return `${c.text} [${b}]`;
         }).join(' | ');
-        lines.push([r.id, r.created_at, r.name, r.email, r.lang, ...ids.map(cell), custom].map(csvCell).join(','));
+        const title = id => txt(cfg.features.find(f => f.id === id)?.title) || (p.custom || []).find(c => c.id === id)?.text || id;
+        const comments = Object.entries(p.comments || {}).map(([id, c]) => `${title(id)}: ${c}`).join(' | ');
+        lines.push([r.id, r.created_at, r.name, r.email, r.lang, ...ids.map(cell), custom, comments].map(csvCell).join(','));
       }
       return send(res, 200, '﻿' + lines.join('\n'), 'text/csv; charset=utf-8', {
         'Content-Disposition': 'attachment; filename="feature-voting.csv"',
       });
+    }
+
+    // Admin: list single responses (incl. names/emails) and delete bogus ones
+    if (req.method === 'GET' && url.pathname === '/api/responses') {
+      if (!isAdmin(url)) return send(res, 401, { error: 'unauthorized' });
+      const list = allStmt.all().reverse().map(r => {
+        let p = {};
+        try { p = JSON.parse(r.payload); } catch { /* skip broken payload */ }
+        return { id: r.id, created_at: r.created_at, name: r.name, email: r.email, lang: r.lang,
+          buckets: p.buckets || {}, custom: p.custom || [], comments: p.comments || {} };
+      });
+      return send(res, 200, { responses: list });
+    }
+    const delMatch = req.method === 'DELETE' && url.pathname.match(/^\/api\/responses\/([0-9a-f-]{36})$/);
+    if (delMatch) {
+      if (!isAdmin(url)) return send(res, 401, { error: 'unauthorized' });
+      const { changes } = deleteStmt.run(delMatch[1]);
+      if (!changes) return send(res, 404, { error: 'not found' });
+      scheduleBroadcast();
+      return send(res, 200, { ok: true });
     }
 
     if (req.method === 'GET' && url.pathname === '/api/admin') {
