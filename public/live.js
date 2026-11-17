@@ -200,11 +200,18 @@
     const area = $('#bubbles');
     const W = area.clientWidth || 900, H = area.clientHeight || 600;
     const maxN = Math.max(1, ...data.features.map(f => f.n));
-    const minD = Math.max(110, Math.min(W, H) * 0.2), maxD = Math.max(170, Math.min(W, H) * 0.36);
-    const pad = 12, topPad = 48;
+    const pad = 12;
+    // keep bubbles below the zone headings
+    const label = area.parentElement.querySelector('.zone span');
+    const topPad = label ? label.offsetTop + label.offsetHeight + 12 : 48;
+    // size from the free area: all bubbles together cover about a third of it, so they fit without piling up
+    const shown = data.features.filter(f => f.n > 0);
+    const rel = f => 0.65 + 0.35 * Math.sqrt(f.n / maxN);
+    const sumSq = shown.reduce((s, f) => s + rel(f) ** 2, 0) || 1;
+    const unit = Math.min(Math.sqrt(0.34 * W * (H - topPad) / (Math.PI / 4 * sumSq)), Math.min(W, H - topPad) * 0.4);
 
-    const nodes = data.features.filter(f => f.n > 0).map(f => {
-      const d = f.n ? minD + Math.sqrt(f.n / maxN) * (maxD - minD) : minD * 0.8;
+    const nodes = shown.map(f => {
+      const d = rel(f) * unit;
       const tx = pad + d / 2 + (1 - f.lean) * (W - d - pad * 2);
       const old = bubblePos.get(f.id);
       return {
@@ -260,7 +267,7 @@
       el.style.width = el.style.height = n.r * 2 + 'px';
       el.style.background = bubbleColor(f.n ? f.lean : 0.5);
       el.style.opacity = f.n ? 1 : 0.35;
-      el.style.fontSize = n.r < 80 ? '.8em' : '';
+      el.style.setProperty('--d', n.r * 2 + 'px');
       requestAnimationFrame(() => { el.style.transform = `translate(${n.x - n.r}px, ${n.y - n.r}px)`; });
       if (!first && changed(f, prevById.get(f.id))) {
         el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');

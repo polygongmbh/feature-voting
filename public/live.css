@@ -148,14 +148,16 @@ button { font: inherit; color: inherit; }
 .bubbles { position: absolute; inset: 0; }
 .bubble {
   position: absolute; left: 0; top: 0; border-radius: 50%;
-  display: grid; place-items: center; text-align: center; padding: .6rem;
+  display: grid; place-items: center; text-align: center; padding: 13%;
   color: #fff; font-weight: 850; line-height: 1.1;
+  /* label scales with the bubble (--d = diameter); long German words get hyphenated */
+  font-size: clamp(.8rem, calc(var(--d, 10rem) * .1), 2rem); hyphens: auto; -webkit-hyphens: auto; overflow-wrap: anywhere;
   box-shadow: 0 6px 18px #0b122033;
   transition: transform 1.2s cubic-bezier(.2, .8, .2, 1), width 1.2s cubic-bezier(.2, .8, .2, 1), height 1.2s cubic-bezier(.2, .8, .2, 1), background 1.2s;
   will-change: transform;
 }
-.bubble span { font-size: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.bubble small { display: block; font-size: 1.1rem; font-weight: 750; opacity: .9; margin-top: .2rem; }
+.bubble span { font-size: 1em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.bubble small { display: block; font-size: .75em; font-weight: 750; opacity: .9; margin-top: .2rem; }
 .bubble.flash { animation: ring 1s ease-out; }
 @keyframes ring { 0% { box-shadow: 0 0 0 0 #4338ca88, 0 6px 18px #0b122033; } 100% { box-shadow: 0 0 0 26px #4338ca00, 0 6px 18px #0b122033; } }
 
