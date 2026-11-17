@@ -64,14 +64,20 @@
       </aside>
     </main>
 
-    <div class="empty-state" id="emptyState">
-      <div class="pulse"></div>
-      <p>Warte auf die ersten Antworten …</p>
+    <!-- Bis zur ersten Antwort: Vollbild mit QR-Code und Adresse zum Mitmachen -->
+    <div class="join" id="emptyState">
+      <div class="join-qr" id="joinQr"></div>
+      <div class="join-text">
+        <p class="join-kicker">Mitmachen</p>
+        <p class="join-url" id="joinUrl"></p>
+        <p class="join-wait"><span class="pulse"></span>Warte auf die ersten Antworten …</p>
+      </div>
     </div>
   </div>
 
   <div class="flash" id="flash">+1</div>
 
+  <script src="/vendor/qrcode.js"></script>
   <script src="/live.js"></script>
 </body>
 </html>

@@ -149,7 +149,22 @@ button { font: inherit; color: inherit; }
 .ideas-empty { color: var(--muted); font-size: 1.05rem; margin: 0; }
 
 /* ---------- Leer / Flash ---------- */
-.empty-state { position: fixed; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1.2rem; pointer-events: none; color: var(--muted); font-size: 1.6rem; }
+/* Vollbild bis zur ersten Antwort: QR-Code + Adresse, vom Beamer aus lesbar */
+.join {
+  position: fixed; inset: 0; z-index: 30; background: var(--bg);
+  display: flex; align-items: center; justify-content: center; gap: 6vmin; padding: 5vmin;
+}
+.join-qr { width: min(78vh, 46vw); aspect-ratio: 1; background: #fff; border-radius: 2vmin; padding: 1.5vmin; flex: none; }
+.join-qr svg { display: block; width: 100%; height: 100%; }
+.join-text { min-width: 0; }
+.join-kicker { margin: 0; font-size: clamp(1.5rem, 4vmin, 3.5rem); font-weight: 700; color: var(--muted); }
+.join-url { margin: .1em 0 .4em; font-size: clamp(2.5rem, 8.5vmin, 9rem); font-weight: 900; letter-spacing: -.03em; line-height: 1.05; overflow-wrap: anywhere; }
+.join-wait { margin: 0; display: flex; align-items: center; gap: .8em; font-size: clamp(1.1rem, 3vmin, 2.2rem); color: var(--muted); }
+@media (orientation: portrait) {
+  .join { flex-direction: column; text-align: center; }
+  .join-qr { width: min(80vw, 55vh); }
+  .join-wait { justify-content: center; }
+}
 .pulse { width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--accent); animation: livepulse 1.6s infinite; }
 .flash {
   position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%) scale(.6); opacity: 0; pointer-events: none;

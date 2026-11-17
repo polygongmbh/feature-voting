@@ -211,6 +211,7 @@ const STATIC = {
   '/survey.js': ['public/survey.js', 'text/javascript; charset=utf-8'],
   '/live.js': ['public/live.js', 'text/javascript; charset=utf-8'],
   '/vendor/Sortable.min.js': ['node_modules/sortablejs/Sortable.min.js', 'text/javascript; charset=utf-8'],
+  '/vendor/qrcode.js': ['node_modules/qrcode-generator/dist/qrcode.js', 'text/javascript; charset=utf-8'],
 };
 const csvCell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
 

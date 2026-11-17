@@ -13,6 +13,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "qrcode-generator": "^2.0.4",
     "sortablejs": "^1.15.6"
   }
 }

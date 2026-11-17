@@ -42,6 +42,19 @@
     connect();
   });
 
+  // Join screen: QR code + address of the survey, shown until the first answer arrives
+  function renderJoin() {
+    const url = location.origin + '/';
+    $('#joinUrl').textContent = location.host;
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      $('#joinQr').innerHTML = qr.createSvgTag({ cellSize: 1, margin: 2, scalable: true, alt: url });
+    } catch { $('#joinQr').hidden = true; }
+  }
+  renderJoin();
+
   function connect() {
     if (!token) return showGate(false);
     if (es) es.close();
