@@ -54,8 +54,8 @@ No lint or test suite yet.
 - `public/index.html` + `survey.js` + `style.css` — the survey (drag & drop, own ideas, DE/EN, local draft).
 - `public/live.html` + `live.js` + `live.css` — token-protected live view (bars, cluster, own ideas).
 - `config.json` — texts, TestFlight link, feature list; mounted read-only in Docker.
-- `public/backend.js` — endpoint URLs and live transport (SSE for Node, polling for PHP), switched by `<meta name="fv-backend">`.
-- `php/` — PHP port (`api.php`) and `build.sh`, which assembles a HestiaCP layout from `public/`; see `php/README.md`.
+- `public/backend.js`: endpoint URLs and live transport (SSE for Node, polling for PHP), switched by `<meta name="fv-backend">`.
+- `php/`: PHP port (`api.php`) and `build.sh`, which assembles a HestiaCP layout from `public/`; see `php/README.md`.
 
 ## Invariants
 
