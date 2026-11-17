@@ -2,7 +2,7 @@
 // Keine Frameworks, nur Node >= 22.13 (node:sqlite) und SortableJS fürs Frontend.
 
 import http from 'node:http';
-import { readFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { DatabaseSync } from 'node:sqlite';
 import { randomUUID, timingSafeEqual, createHash } from 'node:crypto';
@@ -14,6 +14,8 @@ const PORT = Number(process.env.PORT) || 3000;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const CONFIG_PATH = process.env.CONFIG_PATH || path.join(__dirname, 'config.json');
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';
+// Feature list edited in the live view; overrides config.json's features (config.json is mounted read-only)
+const FEATURES_PATH = path.join(DATA_DIR, 'features.json');
 const TRUST_PROXY = process.env.TRUST_PROXY === '1';
 const BUCKETS = ['want', 'nice', 'no'];
 
@@ -38,12 +40,18 @@ const allStmt = db.prepare('SELECT * FROM responses ORDER BY created_at ASC');
 // ---------- Konfiguration (wird bei Änderungen ohne Neustart übernommen) ----------
 let configCache = null;
 let configMtimeKey = '';
+function readOptional(file) {
+  try { return readFileSync(file, 'utf8'); } catch (err) { if (err.code === 'ENOENT') return ''; throw err; }
+}
 function getConfig() {
   try {
     const raw = readFileSync(CONFIG_PATH, 'utf8');
-    const key = createHash('sha1').update(raw).digest('hex');
+    const rawFeatures = readOptional(FEATURES_PATH);
+    const key = createHash('sha1').update(raw).update('\0').update(rawFeatures).digest('hex');
     if (key !== configMtimeKey) {
-      configCache = JSON.parse(raw);
+      const cfg = JSON.parse(raw);
+      if (rawFeatures) cfg.features = JSON.parse(rawFeatures);
+      configCache = cfg;
       configMtimeKey = key;
     }
   } catch (err) {
@@ -106,6 +114,29 @@ function aggregate() {
 }
 
 // ---------- Validierung ----------
+// Returns the cleaned feature list or an error string
+function validateFeatures(list) {
+  if (!Array.isArray(list) || list.length < 1 || list.length > 60) return 'need 1 to 60 features';
+  const str = (v, max) => String(v ?? '').trim().replace(/\s+/g, ' ').slice(0, max);
+  const ids = new Set();
+  const out = [];
+  for (const f of list) {
+    const id = String(f?.id ?? '');
+    if (!/^[a-z0-9][a-z0-9_-]{0,39}$/.test(id) || id.startsWith('c_')) return 'bad feature id';
+    if (ids.has(id)) return 'duplicate feature id';
+    ids.add(id);
+    const title = { de: str(f.title?.de, 80), en: str(f.title?.en, 80) };
+    const desc = { de: str(f.desc?.de, 200), en: str(f.desc?.en, 200) };
+    if (!title.de && !title.en) return 'feature without title';
+    if (!title.de) title.de = title.en;
+    if (!title.en) delete title.en;
+    if (!desc.de && desc.en) desc.de = desc.en;
+    if (!desc.en) delete desc.en;
+    out.push(desc.de ? { id, title, desc } : { id, title });
+  }
+  return out;
+}
+
 function validate(body, cfg) {
   if (!body || typeof body !== 'object') return 'invalid body';
   const featureIds = new Set(cfg.features.map(f => f.id));
@@ -288,6 +319,24 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    if (req.method === 'GET' && url.pathname === '/api/admin') {
+      return send(res, isAdmin(url) ? 200 : 401, { ok: isAdmin(url) });
+    }
+
+    if (req.method === 'PUT' && url.pathname === '/api/features') {
+      if (!isAdmin(url)) return send(res, 401, { error: 'unauthorized' });
+      let body;
+      try { body = JSON.parse(await readBody(req, 128 * 1024)); } catch { return send(res, 400, { error: 'invalid json' }); }
+      const features = validateFeatures(body?.features);
+      if (typeof features === 'string') return send(res, 400, { error: features });
+      // why: write-then-rename so a crash never leaves a half-written file that getConfig would choke on
+      const tmp = FEATURES_PATH + '.tmp';
+      writeFileSync(tmp, JSON.stringify(features, null, 2) + '\n');
+      renameSync(tmp, FEATURES_PATH);
+      scheduleBroadcast();
+      return send(res, 200, { ok: true, features });
+    }
+
     if (req.method === 'GET' && url.pathname === '/healthz') return send(res, 200, { ok: true });
 
     send(res, 404, { error: 'not found' });
@@ -299,5 +348,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Umfrage:        http://localhost:${PORT}/`);
-  if (ADMIN_TOKEN) console.log(`Live-Ansicht:   http://localhost:${PORT}/live?token=<ADMIN_TOKEN>`);
+  console.log(`Live-Ansicht:   http://localhost:${PORT}/live`);
 });
