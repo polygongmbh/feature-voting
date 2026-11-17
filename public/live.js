@@ -288,6 +288,8 @@
     if (next !== 'qr') lastView = next;
     else if (view !== 'qr') lastView = view;
     view = next;
+    // why: the tab lives in the URL hash, so a reload comes back to the same tab
+    history.replaceState(null, '', location.pathname + location.search + '#' + view);
     document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
     // the QR tab is a fullscreen overlay above the last real view
     const shown = view === 'qr' ? lastView : view;
@@ -453,5 +455,10 @@
   });
 
   connect();
-  setView('qr');
+  // a tab in the URL hash wins over the automatic QR start screen
+  const fromHash = location.hash.slice(1);
+  if (fromHash && fromHash !== 'qr' && document.querySelector(`.seg [data-view="${CSS.escape(fromHash)}"]`)) {
+    autoQr = false;
+    setView(fromHash);
+  } else setView('qr');
 })();
