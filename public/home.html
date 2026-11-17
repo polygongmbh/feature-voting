@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Feature-Voting</title>
+  <meta name="description" content="Optionen per Drag & Drop priorisieren lassen und die Ergebnisse live am Beamer zeigen.">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .home { max-width: var(--content); margin: 0 auto; padding: max(28px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 56px max(20px, env(safe-area-inset-left)); }
+    .home-hero { display: grid; grid-template-columns: 1.15fr 1fr; gap: 40px; align-items: center; padding: 24px 0 48px; }
+    .home-hero h1 { font-size: clamp(34px, 5.5vw, 56px); line-height: 1.05; letter-spacing: -.03em; margin: 0 0 16px; }
+    .home-hero .lead { font-size: 19px; color: var(--muted); margin: 0 0 28px; max-width: 34em; }
+    .home-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* small static picture of the survey list */
+    .mock { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); font-size: 15px; }
+    .mock > :first-child { border-top-left-radius: 15px; border-top-right-radius: 15px; }
+    .mock > :last-child { border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; }
+    .mock-sec { padding: 9px 14px; font-weight: 700; border-left: 6px solid var(--no); background: var(--no-bg); }
+    .mock-sec.w { border-left-color: var(--want); background: var(--want-bg); color: var(--want); }
+    .mock-sec.n { border-left-color: var(--nice); background: var(--nice-bg); color: var(--nice); }
+    .mock-row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-top: 1px solid var(--border); border-left: 6px solid transparent; }
+    .mock-row.w { border-left-color: var(--want); }
+    .mock-row.n { border-left-color: var(--nice); }
+    .mock-row.x { border-left-color: var(--no); color: var(--muted); }
+    .mock-row b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 99px; background: var(--want); color: #fff; font-size: 12px; }
+    .mock-row span { flex: 1; font-weight: 600; }
+    .mock-row i { font-style: normal; color: var(--muted); opacity: .7; }
+    .mock-row.drag { box-shadow: var(--shadow-lift); background: var(--surface); transform: rotate(-1.2deg) scale(1.02); position: relative; border-radius: 8px; }
+
+    .home h2 { font-size: 26px; letter-spacing: -.02em; margin: 0 0 18px; }
+    .steps-3 { list-style: none; padding: 0; margin: 0 0 48px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; counter-reset: s; }
+    .steps-3 li { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; counter-increment: s; }
+    .steps-3 li::before { content: counter(s); display: grid; place-items: center; width: 32px; height: 32px; border-radius: 99px; background: var(--accent); color: #fff; font-weight: 800; margin-bottom: 12px; }
+    .steps-3 h3 { margin: 0 0 6px; font-size: 18px; }
+    .steps-3 p { margin: 0; color: var(--muted); }
+    .facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 32px; margin: 0 0 40px; padding: 0; list-style: none; }
+    .facts li { padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .facts strong { display: block; }
+    .facts span { color: var(--muted); }
+    .home-foot { color: var(--muted); font-size: 14px; display: flex; gap: 16px; flex-wrap: wrap; }
+    .home-foot a { color: inherit; }
+    @media (max-width: 760px) {
+      .home-hero { grid-template-columns: 1fr; gap: 28px; padding-bottom: 32px; }
+      .steps-3, .facts { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="home">
+    <section class="home-hero">
+      <div>
+        <h1>Was ist deinen Leuten wirklich wichtig?</h1>
+        <p class="lead">Feature-Voting lässt Teilnehmende Optionen per Drag &amp; Drop in drei Gruppen sortieren.
+          Du siehst die Ergebnisse live am Beamer, Antwort für Antwort.</p>
+        <div class="home-actions">
+          <a class="btn primary big" href="/admin">Umfragen verwalten</a>
+        </div>
+      </div>
+      <div class="mock" aria-hidden="true">
+        <div class="mock-sec w">🔥 Das will ich!</div>
+        <div class="mock-row w"><b>1</b><span>Kalenderübersicht</span><i>💬</i></div>
+        <div class="mock-row w drag"><b>2</b><span>Mensa-Speiseplan</span><i>≡</i></div>
+        <div class="mock-sec n">✨ Das wäre nett</div>
+        <div class="mock-row n"><span>Campus-Karte</span><i>≡</i></div>
+        <div class="mock-row n"><span>File Sharing</span><i>≡</i></div>
+        <div class="mock-sec">💤 Brauche ich nicht</div>
+        <div class="mock-row x"><span>Dark Mode</span><i>≡</i></div>
+      </div>
+    </section>
+
+    <h2>So funktioniert es</h2>
+    <ol class="steps-3">
+      <li><h3>Umfrage anlegen</h3><p>Titel und Optionen eintragen, optional einen Link für die Danke-Seite.</p></li>
+      <li><h3>QR-Code zeigen</h3><p>Die Live-Ansicht startet mit QR-Code und Adresse. Alle öffnen die Umfrage am Handy.</p></li>
+      <li><h3>Live auswerten</h3><p>Diagramm und Cluster bewegen sich mit jeder Antwort. Am Ende alles als CSV.</p></li>
+    </ol>
+
+    <h2>Was drin steckt</h2>
+    <ul class="facts">
+      <li><strong>Drei Gruppen statt Skalen</strong><span>Das will ich, das wäre nett, brauche ich nicht. Ganz oben zählt am meisten.</span></li>
+      <li><strong>Faire Reihenfolge</strong><span>Alle bekommen die Optionen in eigener, zufälliger Reihenfolge.</span></li>
+      <li><strong>Eigene Ideen und Kommentare</strong><span>Was fehlt, kommt dazu; zu jeder Option ein kurzer Kommentar.</span></li>
+      <li><strong>Anonym, wenn gewünscht</strong><span>Name und E-Mail sind freiwillig und kommen erst nach dem Abschicken.</span></li>
+      <li><strong>Datensparsam</strong><span>Selbst gehostet, keine IP-Adressen, keine externen Dienste.</span></li>
+      <li><strong>Für Handy und Beamer</strong><span>Umfrage mobil, hell oder dunkel; Auswertung groß und kontrastreich.</span></li>
+    </ul>
+
+    <footer class="home-foot">
+      <a href="/admin">Verwaltung</a>
+      <a href="https://github.com/polygongmbh/feature-voting" rel="noopener">Quellcode auf GitHub</a>
+    </footer>
+  </main>
+</body>
+</html>

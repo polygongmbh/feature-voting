@@ -172,8 +172,8 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/healthz') return send(res, 200, { ok: true });
     if (STATIC[url.pathname]) return await serveFile(res, ...STATIC[url.pathname]);
 
-    // the start page is the survey overview
-    if (url.pathname === '/') return await serveFile(res, 'public/admin.html', 'text/html; charset=utf-8');
+    // the start page introduces the tool; /admin manages the surveys
+    if (url.pathname === '/') return await serveFile(res, 'public/home.html', 'text/html; charset=utf-8');
     // /<survey> and /<survey>/live
     const [, id, sub, extra] = parts;
     if (id && SURVEY_ID_RE.test(id) && extra === undefined && db.getSurvey(id)) {
