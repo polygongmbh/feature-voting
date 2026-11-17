@@ -1,6 +1,6 @@
 # Feature-Voting
 
-Kleine selbst gehostete Umfrage-App: Teilnehmende ziehen die Zeilen einer flachen, vertikalen Liste in die Abschnitte **Das will ich! / Das wäre nett / Brauche ich nicht** (die ganze Zeile ist ziehbar, auf dem Handy kurz halten; Antippen öffnet weitere Optionen). Alle Features starten in der Mitte ("Das wäre nett"), für alle in einer eigenen, zufälligen Reihenfolge, damit die Position die Wertung nicht beeinflusst. Teilnehmende können eigene Ideen ergänzen und optional Name und E-Mail angeben. Am Ende gibt es den TestFlight-Link. Für dich gibt es eine Live-Auswertung im Mentimeter-Stil.
+Kleine selbst gehostete Umfrage-App: Teilnehmende ziehen die Zeilen einer flachen, vertikalen Liste in die Abschnitte **Das will ich! / Das wäre nett / Brauche ich nicht** (die ganze Zeile ist ziehbar, auf dem Handy kurz halten; Antippen öffnet weitere Optionen). Alle Features starten in der Mitte ("Das wäre nett"), für alle in einer eigenen, zufälligen Reihenfolge, damit die Position die Wertung nicht beeinflusst. Teilnehmende können eigene Ideen ergänzen. "Abschicken" speichert die Antwort sofort; auf der Danke-Seite mit dem TestFlight-Link lassen sich danach optional Name und E-Mail zur eigenen Antwort ergänzen (der Browser bekommt dafür einen Schlüssel, der Server speichert nur dessen Hash). Für dich gibt es eine Live-Auswertung im Mentimeter-Stil.
 
 - Node >= 22.13, SQLite eingebaut (`node:sqlite`), einzige Abhängigkeit: SortableJS
 - Deutsch und Englisch (Umschalter oben rechts, Sprache wird automatisch erkannt)
