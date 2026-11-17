@@ -75,8 +75,14 @@
     $('#title').textContent = data.title || 'Live-Auswertung';
     document.title = 'Live: ' + (data.title || 'Auswertung');
     if (view === 'responses' && token && data.total !== total) openResponses();
+    // QR while there are no answers: first answer switches QR -> diagram, dropping back to 0 shows QR again
+    const was = total;
     total = data.total;
-    if (autoQr && total > 0) { autoQr = false; if (view === 'qr') setView('ranking'); }
+    if (!first || autoQr) {
+      if (view === 'qr' && total > 0 && (was === 0 || autoQr)) setView('ranking');
+      else if (total === 0 && was > 0 && (view === 'ranking' || view === 'cluster')) setView('qr');
+    }
+    autoQr = false;
     syncJoin();
 
     const grew = prev && data.total > prev.total;
@@ -183,17 +189,18 @@
   // ---------- Cluster (kleine Physik-Simulation) ----------
   function bubbleColor(lean) {
     // 0 = brauche ich nicht (grau), 0.5 = nett (amber), 1 = will ich (grün)
-    const g = [34, 197, 94], a = [245, 158, 11], s = [100, 116, 139];
+    // same tones as the bars (--want / --nice / --no), dark enough for white text on a projector
+    const g = [21, 128, 61], a = [194, 88, 12], s = [91, 102, 120];
     const mix = (c1, c2, k) => c1.map((v, i) => Math.round(v + (c2[i] - v) * k));
     const c = lean >= 0.5 ? mix(a, g, (lean - 0.5) * 2) : mix(s, a, lean * 2);
-    return `radial-gradient(circle at 30% 25%, rgb(${c.map(v => Math.min(255, v + 60))}), rgb(${c}))`;
+    return `rgb(${c})`;
   }
 
   function renderCluster(data, prevById) {
     const area = $('#bubbles');
     const W = area.clientWidth || 900, H = area.clientHeight || 600;
     const maxN = Math.max(1, ...data.features.map(f => f.n));
-    const minD = Math.max(80, Math.min(W, H) * 0.14), maxD = Math.max(140, Math.min(W, H) * 0.3);
+    const minD = Math.max(110, Math.min(W, H) * 0.2), maxD = Math.max(170, Math.min(W, H) * 0.36);
     const pad = 12, topPad = 48;
 
     const nodes = data.features.filter(f => f.n > 0).map(f => {
@@ -253,7 +260,7 @@
       el.style.width = el.style.height = n.r * 2 + 'px';
       el.style.background = bubbleColor(f.n ? f.lean : 0.5);
       el.style.opacity = f.n ? 1 : 0.35;
-      el.style.fontSize = n.r < 55 ? '.8em' : '';
+      el.style.fontSize = n.r < 80 ? '.8em' : '';
       requestAnimationFrame(() => { el.style.transform = `translate(${n.x - n.r}px, ${n.y - n.r}px)`; });
       if (!first && changed(f, prevById.get(f.id))) {
         el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
@@ -449,7 +456,8 @@
   let resizeT;
   addEventListener('resize', () => {
     clearTimeout(resizeT);
-    resizeT = setTimeout(() => { if (prev) { renderCluster(prev, new Map()); renderRanking(prev, new Map(prev.features.map((f, i) => [f.id, { ...f, pos: i }]))); } }, 200);
+    // fresh bubble layout for the new size instead of squeezing the old positions
+    resizeT = setTimeout(() => { bubblePos.clear(); if (prev) { renderCluster(prev, new Map()); renderRanking(prev, new Map(prev.features.map((f, i) => [f.id, { ...f, pos: i }]))); } }, 200);
   });
 
   connect();
