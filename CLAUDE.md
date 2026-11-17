@@ -77,6 +77,7 @@ No lint or test suite yet.
 
 - Decisions, rationale, and major turning points live in `docs/`, not inline; this file points.
 - `docs/history.md`: how the app came to be (Janek's input verbatim, turning points, why there is no PHP port).
+- `docs/open-points.md`: undecided questions and pending work; read before changing the live view.
 - **One fact, one home**: each topic owned by exactly one doc;
   narrative docs (history, status, plans) link into it, never restate it.
 - **Delete plan docs once shipped** — don't leave a stale third copy.
