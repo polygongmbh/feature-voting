@@ -29,18 +29,6 @@
     history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : ''));
   }
 
-  function showGate(error) {
-    $('#app').hidden = true;
-    $('#gate').hidden = false;
-    $('#gateError').hidden = !error;
-    $('#gateInput').focus();
-  }
-  $('#gateForm').addEventListener('submit', e => {
-    e.preventDefault();
-    token = $('#gateInput').value.trim();
-    ss.set(TOKEN_KEY, token);
-    connect();
-  });
 
   // Join screen: QR code + address of the survey, shown until the first answer arrives
   function renderJoin() {
@@ -55,28 +43,40 @@
   }
   renderJoin();
 
+  // QR screen: automatic until the first answer, toggled by the QR button or the Q key afterwards
+  let total = 0;
+  let joinForced = false;
+  const syncJoin = () => {
+    $('#emptyState').hidden = total > 0 && !joinForced;
+    $('#joinWait').hidden = total > 0;
+  };
+  const toggleJoin = force => { joinForced = force ?? !joinForced; syncJoin(); };
+  $('#qrBtn').addEventListener('click', () => toggleJoin(true));
+  $('#emptyState').addEventListener('click', () => toggleJoin(false));
+  document.addEventListener('keydown', e => {
+    if (e.target.closest?.('input, textarea')) return;
+    if (e.key === 'q' || e.key === 'Q') toggleJoin();
+    if (e.key === 'Escape') toggleJoin(false);
+  });
+
   function connect() {
-    if (!token) return showGate(false);
     if (es) es.close();
-    // Token vorab prüfen, weil EventSource keinen Statuscode liefert
-    fetch('/api/stream?token=' + encodeURIComponent(token)).then(res => {
-      if (res.status === 401) { showGate(true); return; }
-      res.body?.cancel();
-      $('#gate').hidden = true;
-      $('#app').hidden = false;
-      $('#exportLink').href = '/api/export.csv?token=' + encodeURIComponent(token);
-      es = new EventSource('/api/stream?token=' + encodeURIComponent(token));
-      es.addEventListener('update', ev => update(JSON.parse(ev.data)));
-      es.onopen = () => $('#liveDot').classList.add('on');
-      es.onerror = () => $('#liveDot').classList.remove('on');
-    }).catch(() => setTimeout(connect, 3000));
+    $('#app').hidden = false;
+    // CSV export contains names/emails: only offered when an admin token was given
+    $('#exportLink').hidden = !token;
+    if (token) $('#exportLink').href = '/api/export.csv?token=' + encodeURIComponent(token);
+    es = new EventSource('/api/stream');
+    es.addEventListener('update', ev => update(JSON.parse(ev.data)));
+    es.onopen = () => $('#liveDot').classList.add('on');
+    es.onerror = () => $('#liveDot').classList.remove('on');
   }
 
   // ---------- Update ----------
   function update(data) {
     $('#title').textContent = data.title || 'Live-Auswertung';
     document.title = 'Live: ' + (data.title || 'Auswertung');
-    $('#emptyState').hidden = data.total > 0;
+    total = data.total;
+    syncJoin();
 
     const grew = prev && data.total > prev.total;
     animateNumber($('#total'), prev ? prev.total : 0, data.total);

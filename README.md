@@ -14,10 +14,11 @@ Kleine selbst gehostete Umfrage-App: Teilnehmende ziehen die Zeilen einer flache
 | `/` | Die Umfrage |
 | `/?lang=en` | Umfrage direkt auf Englisch |
 | `/?reset` | Lokalen Entwurf und "schon abgestimmt" zurücksetzen (zum Testen) |
-| `/live?token=DEIN_TOKEN` | Live-Auswertung für den Beamer (Balkendiagramm + Cluster + eigene Ideen). Bis zur ersten Antwort zeigt sie bildschirmfüllend QR-Code und Adresse der Umfrage. |
+| `/live` | Live-Auswertung für den Beamer (Balkendiagramm + Cluster + eigene Ideen), öffentlich. Bis zur ersten Antwort zeigt sie bildschirmfüllend QR-Code und Adresse der Umfrage; danach holt der Button QR oder die Taste Q den QR-Code zurück (Klick oder Esc schließt ihn). |
+| `/live?token=DEIN_TOKEN` | Wie oben, zusätzlich mit CSV-Button |
 | `/api/export.csv?token=DEIN_TOKEN` | Alle Antworten als CSV (öffnet sauber in Excel) |
 
-Der Token wird nach dem Öffnen aus der Adresszeile entfernt, damit er nicht auf dem Beamer oder in Screenshots landet.
+Der Token schützt nur den CSV-Export, weil der Namen und E-Mail-Adressen enthält. Er wird nach dem Öffnen aus der Adresszeile entfernt.
 
 ## Anpassen: `config.json`
 
@@ -34,7 +35,8 @@ Der Token wird nach dem Öffnen aus der Adresszeile entfernt, damit er nicht auf
 npm install
 ADMIN_TOKEN=geheim node server.js
 # Umfrage:  http://localhost:3000/
-# Live:     http://localhost:3000/live?token=geheim
+# Live:     http://localhost:3000/live
+# CSV:      http://localhost:3000/api/export.csv?token=geheim
 ```
 
 ## Auf dem Server (Docker)

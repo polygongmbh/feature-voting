@@ -29,13 +29,6 @@ body {
 button { font: inherit; color: inherit; }
 
 /* ---------- Gate ---------- */
-.gate { min-height: 100vh; display: grid; place-items: center; padding: 24px; font-size: 16px; }
-.gate form { display: grid; gap: 10px; width: min(340px, 100%); }
-.gate h1 { margin: 0; }
-.gate p { margin: 0; color: var(--muted); }
-.gate input, .gate button { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--panel-solid); font-size: 16px; }
-.gate button { background: var(--accent); border: 0; color: #0b0d14; font-weight: 700; cursor: pointer; }
-.gate-error { color: #f87171 !important; }
 
 /* ---------- Kopf ---------- */
 .live { height: 100vh; display: flex; flex-direction: column; padding: 1.4rem 1.8rem 1.6rem; }
@@ -56,6 +49,8 @@ button { font: inherit; color: inherit; }
 .seg button.active { background: #262d44; color: var(--text); }
 .export { color: var(--muted); text-decoration: none; font-size: .85rem; font-weight: 700; border: 1px solid var(--border); padding: .55rem .8rem; border-radius: .6rem; }
 .export:hover { color: var(--text); }
+button.export { background: transparent; cursor: pointer; font-family: inherit; }
+.join { cursor: pointer; }
 
 /* ---------- Bühne ---------- */
 .stage { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr minmax(16rem, 24%); gap: 1.4rem; }

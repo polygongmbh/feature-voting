@@ -8,16 +8,6 @@
   <link rel="stylesheet" href="/live.css">
 </head>
 <body>
-  <div id="gate" class="gate" hidden>
-    <form id="gateForm">
-      <h1>Live-Auswertung</h1>
-      <p>Admin-Token eingeben</p>
-      <input id="gateInput" type="password" autocomplete="current-password" required>
-      <button type="submit">Öffnen</button>
-      <p id="gateError" class="gate-error" hidden>Token ungültig.</p>
-    </form>
-  </div>
-
   <div id="app" class="live" hidden>
     <header class="head">
       <div class="head-left">
@@ -30,7 +20,8 @@
           <button type="button" data-view="ranking" class="active">Diagramm</button>
           <button type="button" data-view="cluster">Cluster</button>
         </div>
-        <a id="exportLink" class="export" href="#">CSV</a>
+        <button type="button" id="qrBtn" class="export" title="QR-Code zeigen (Taste Q)">QR</button>
+        <a id="exportLink" class="export" href="#" hidden>CSV</a>
       </div>
     </header>
 
@@ -70,7 +61,7 @@
       <div class="join-text">
         <p class="join-kicker">Mitmachen</p>
         <p class="join-url" id="joinUrl"></p>
-        <p class="join-wait"><span class="pulse"></span>Warte auf die ersten Antworten …</p>
+        <p class="join-wait" id="joinWait"><span class="pulse"></span>Warte auf die ersten Antworten …</p>
       </div>
     </div>
   </div>

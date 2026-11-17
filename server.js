@@ -248,8 +248,8 @@ const server = http.createServer(async (req, res) => {
       return send(res, 201, { ok: true });
     }
 
+    // Live view is public (only aggregates and ideas); names/emails stay behind the token in the CSV export
     if (req.method === 'GET' && url.pathname === '/api/stream') {
-      if (!isAdmin(url)) return send(res, 401, { error: 'unauthorized' });
       res.writeHead(200, {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache, no-transform',
