@@ -67,6 +67,10 @@ No lint or test suite yet.
 
 - Production: poly1 (`/srv/feature-voting`), behind the Caddy container `srv-caddy-1`
   via the external Docker network `noas-shared`; https://vote.polygon.gmbh.
+- Deploy: `git push poly1 main` — the server checkout (`receive.denyCurrentBranch=updateInstead`)
+  updates its tree and a `post-receive` hook runs `docker compose up -d --build` + `/healthz`.
+  Push to `origin` (GitHub) too; the server's `origin` fetches from there.
+- `.env` (ADMIN_TOKEN) and `data/` exist only on the server, never in git.
 - Server-side history lives in heinzel (`memory/servers/poly1/`).
 
 ## Extended docs
