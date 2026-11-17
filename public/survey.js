@@ -7,7 +7,7 @@
 
   const I18N = {
     de: {
-      howto: 'Zieh die Features am Griff ≡ nach oben oder unten. Ganz oben steht, was dir am wichtigsten ist. Oder tippe ein Feature an.',
+      howto: 'Halte ein Feature fest und zieh es in den passenden Abschnitt. Ganz oben steht, was dir am wichtigsten ist. Antippen zeigt weitere Optionen.',
       ideaLabel: 'Fehlt dir etwas?', poolHint: 'Einfach von oben nach unten durchgehen',
       pool: 'Noch zu sortieren', want: 'Das will ich!', nice: 'Das wäre nett', no: 'Brauche ich nicht',
       wantHint: 'Ganz oben = am wichtigsten', dropHere: 'Noch leer. Hierher ziehen oder antippen.', poolEmpty: 'Alles sortiert 🎉',
@@ -20,14 +20,14 @@
       name: 'Name (optional)', email: 'E-Mail (optional)', emailInvalid: 'Die E-Mail-Adresse sieht nicht richtig aus.',
       back: 'Zurück', submit: 'Abschicken', sending: 'Wird gesendet …',
       submitFail: 'Das hat nicht geklappt. Bitte versuch es nochmal.',
-      thanks: 'Danke dir!', tfButton: 'Zur TestFlight-Beta', again: 'Neue Antwort abgeben',
+      thanks: 'Danke dir!', tfButton: 'Zur TestFlight-Beta',
       backToPool: 'Zurück in den Stapel', toTop: 'Ganz nach oben', delete: 'Idee löschen', close: 'Schließen',
       movedTo: b => `→ ${I18N.de[b]}`, langSwitch: 'EN',
       quickWant: 'Will ich', quickNice: 'Nett', quickNo: 'Nein',
       openMenu: 'Optionen',
     },
     en: {
-      howto: 'Drag features by the handle ≡ up or down. The top is what matters most to you. Or tap a feature.',
+      howto: 'Hold a feature and drag it into the right section. The top is what matters most to you. Tap for more options.',
       ideaLabel: 'Something missing?', poolHint: 'Just go from top to bottom',
       pool: 'To sort', want: 'I want this!', nice: 'Nice to have', no: "Don't need it",
       wantHint: 'Top = most important', dropHere: 'Empty. Drag here or tap a card.', poolEmpty: 'All sorted 🎉',
@@ -40,7 +40,7 @@
       name: 'Name (optional)', email: 'Email (optional)', emailInvalid: "That email address doesn't look right.",
       back: 'Back', submit: 'Submit', sending: 'Sending …',
       submitFail: "That didn't work. Please try again.",
-      thanks: 'Thank you!', tfButton: 'Join the TestFlight beta', again: 'Submit another response',
+      thanks: 'Thank you!', tfButton: 'Join the TestFlight beta',
       backToPool: 'Back to the pile', toTop: 'Move to top', delete: 'Delete idea', close: 'Close',
       movedTo: b => `→ ${I18N.en[b]}`, langSwitch: 'DE',
       quickWant: 'Want', quickNice: 'Nice', quickNo: 'No',
@@ -53,6 +53,7 @@
   let lang = 'de';
   let state = { order: { want: [], nice: [], no: [] }, custom: [] };
   let sheetId = null;
+  let justDragged = false;
 
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
@@ -67,7 +68,15 @@
   const featureById = id => cfg.features.find(f => f.id === id) || state.custom.find(c => c.id === id);
   const isCustom = id => id.startsWith('c_');
   const totalItems = () => cfg.features.length + state.custom.length;
-  const sortedCount = () => state.order.want.length + state.order.nice.length + state.order.no.length;
+  // why: every participant starts from their own random order, so list position can't bias the votes
+  const shuffle = arr => {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
 
   // ---------- Start ----------
   async function init() {
@@ -105,9 +114,9 @@
         state.order[b] = (draft.order[b] || []).filter(id => valid.has(id) && !seen.has(id) && seen.add(id));
       }
       // neue Features aus der Config landen in der Mitte
-      for (const id of valid) if (!seen.has(id)) state.order.nice.push(id);
+      state.order.nice.push(...shuffle([...valid].filter(id => !seen.has(id))));
     } else {
-      state.order.nice = ids.slice();
+      state.order.nice = shuffle(ids);
     }
   }
   const saveDraft = () => store.set(DRAFT_KEY, state);
@@ -122,7 +131,7 @@
     el.setAttribute('role', 'button');
 
     const handle = document.createElement('span');
-    handle.className = 'handle';
+    handle.className = 'grip';
     handle.setAttribute('aria-hidden', 'true');
     handle.textContent = '≡';
     el.appendChild(handle);
@@ -231,7 +240,10 @@
     Sortable.create($('#list'), {
       animation: 180,
       easing: 'cubic-bezier(.2,.8,.2,1)',
-      handle: '.handle',
+      // whole card drags; on touch a short hold starts the drag so swiping still scrolls
+      delay: 150,
+      delayOnTouchOnly: true,
+      touchStartThreshold: 6,
       draggable: '.card, .divider',
       filter: '.divider',
       preventOnFilter: false,
@@ -246,6 +258,9 @@
       onStart: () => document.body.classList.add('is-dragging'),
       onEnd: () => {
         document.body.classList.remove('is-dragging');
+        // why: some browsers fire a click after the drop, which would open the sheet
+        justDragged = true;
+        setTimeout(() => { justDragged = false; }, 0);
         syncFromDom();
       },
     });
@@ -399,7 +414,7 @@
 
     $('#list').addEventListener('click', e => {
       const card = e.target.closest('.card');
-      if (!card) return;
+      if (!card || justDragged) return;
       const quick = e.target.closest('[data-quick]');
       if (quick) {
         moveTo(card.dataset.id, quick.dataset.quick);
@@ -459,13 +474,6 @@
     $('#toDetails').addEventListener('click', () => showStep('details'));
     $('#backBtn').addEventListener('click', () => showStep('sort'));
     $('#detailsForm').addEventListener('submit', submit);
-    $('#againBtn').addEventListener('click', () => {
-      store.del(DONE_KEY);
-      state = { order: { want: [], nice: cfg.features.map(f => f.id), no: [] }, custom: [] };
-      saveDraft();
-      render();
-      showStep('sort');
-    });
   }
 
   init();
