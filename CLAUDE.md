@@ -51,8 +51,8 @@ No lint or test suite yet.
 
 - `server.js`: the whole backend: SQLite (`$DATA_DIR/responses.db`), hot-reloaded `config.json`,
   aggregation/scoring, JSON API (`/api/config`, `/api/responses`), SSE (`/api/stream`), CSV export, `/healthz`.
-- `public/index.html` + `survey.js` + `style.css`: the survey (drag & drop, own ideas, DE/EN, local draft).
-- `public/live.html` + `live.js` + `live.css`: public live view for the projector (tabs: bars, cluster, QR join screen shown until the first answer, options editor behind the token; own ideas).
+- `public/index.html` + `survey.js` + `style.css`: the survey (drag & drop, 💬 comment per option, own ideas, DE/EN, local draft).
+- `public/live.html` + `live.js` + `live.css`: public live view for the projector (tabs: bars, cluster, QR join screen shown until the first answer, options editor and response list with delete behind the token; own ideas).
 - `config.json`: texts, TestFlight link, default feature list; mounted read-only in Docker.
   Once edited in the live view, `$DATA_DIR/features.json` replaces its `features`.
 

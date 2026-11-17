@@ -14,11 +14,11 @@ Kleine selbst gehostete Umfrage-App: Teilnehmende ziehen die Zeilen einer flache
 | `/` | Die Umfrage |
 | `/?lang=en` | Umfrage direkt auf Englisch |
 | `/?reset` | Lokalen Entwurf und "schon abgestimmt" zurücksetzen (zum Testen) |
-| `/live` | Live-Auswertung für den Beamer, öffentlich. Tabs: **Diagramm**, **Cluster**, **QR** (bildschirmfüllend QR-Code und Adresse der Umfrage; automatisch bis zur ersten Antwort, sonst Taste Q, Klick oder Esc geht zurück) und **Optionen** (Features bearbeiten, fragt nach dem Token). |
+| `/live` | Live-Auswertung für den Beamer, öffentlich. Tabs: **Diagramm**, **Cluster**, **QR** (bildschirmfüllend QR-Code und Adresse der Umfrage; automatisch bis zur ersten Antwort, sonst Taste Q, Klick oder Esc geht zurück) **Optionen** (Features bearbeiten) und **Antworten** (einzelne Einsendungen mit Kommentaren ansehen und löschen); die letzten beiden fragen nach dem Token. |
 | `/live?token=DEIN_TOKEN` | Wie oben, Optionen ohne Nachfrage und zusätzlich mit CSV-Button |
 | `/api/export.csv?token=DEIN_TOKEN` | Alle Antworten als CSV (öffnet sauber in Excel) |
 
-Der Token schützt den CSV-Export (enthält Namen und E-Mail-Adressen) und das Bearbeiten der Optionen. Er wird nach dem Öffnen aus der Adresszeile entfernt.
+Der Token schützt den CSV-Export und den Tab Antworten (beide enthalten Namen und E-Mail-Adressen) sowie das Bearbeiten der Optionen. Er wird nach dem Öffnen aus der Adresszeile entfernt.
 
 ## Anpassen: `config.json`
 
@@ -73,4 +73,4 @@ Der Durchschnitt wird auf **0 bis 100** umgerechnet. Im Cluster liegt jede Blase
 
 ## Datenschutz
 
-Gespeichert werden nur die Sortierung, eigene Ideen und die freiwilligen Angaben (Name, E-Mail, Sprache), keine IP-Adressen. Die IP wird nur kurz im Arbeitsspeicher für ein Rate-Limit (20 Antworten pro 10 Minuten) genutzt. Daten liegen in `data/responses.db`.
+Gespeichert werden nur die Sortierung, eigene Ideen, Kommentare (💬 pro Option) und die freiwilligen Angaben (Name, E-Mail, Sprache), keine IP-Adressen. Die IP wird nur kurz im Arbeitsspeicher für ein Rate-Limit (20 Antworten pro 10 Minuten) genutzt. Daten liegen in `data/responses.db`.
