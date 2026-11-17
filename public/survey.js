@@ -7,7 +7,6 @@
 
   const I18N = {
     de: {
-      howto: 'Halte ein Feature fest und zieh es in den passenden Abschnitt. Ganz oben steht, was dir am wichtigsten ist. Antippen zeigt weitere Optionen.',
       ideaLabel: 'Fehlt dir etwas?', poolHint: 'Einfach von oben nach unten durchgehen',
       pool: 'Noch zu sortieren', want: 'Das will ich!', nice: 'Das wäre nett', no: 'Brauche ich nicht',
       wantHint: 'Ganz oben = am wichtigsten', dropHere: 'Noch leer. Hierher ziehen oder antippen.', poolEmpty: 'Alles sortiert 🎉',
@@ -25,9 +24,9 @@
       movedTo: b => `→ ${I18N.de[b]}`, langSwitch: 'EN',
       quickWant: 'Will ich', quickNice: 'Nett', quickNo: 'Nein',
       openMenu: 'Optionen',
+      comment: 'Kommentar', commentLabel: 'Kommentar (optional)', commentPlaceholder: 'Was ist dir dabei wichtig?',
     },
     en: {
-      howto: 'Hold a feature and drag it into the right section. The top is what matters most to you. Tap for more options.',
       ideaLabel: 'Something missing?', poolHint: 'Just go from top to bottom',
       pool: 'To sort', want: 'I want this!', nice: 'Nice to have', no: "Don't need it",
       wantHint: 'Top = most important', dropHere: 'Empty. Drag here or tap a card.', poolEmpty: 'All sorted 🎉',
@@ -45,13 +44,14 @@
       movedTo: b => `→ ${I18N.en[b]}`, langSwitch: 'DE',
       quickWant: 'Want', quickNice: 'Nice', quickNo: 'No',
       openMenu: 'Options',
+      comment: 'Comment', commentLabel: 'Comment (optional)', commentPlaceholder: 'What matters to you here?',
     },
   };
 
   // ---------- State ----------
   let cfg = null;
   let lang = 'de';
-  let state = { order: { want: [], nice: [], no: [] }, custom: [] };
+  let state = { order: { want: [], nice: [], no: [] }, custom: [], comments: {} };
   let sheetId = null;
   let justDragged = false;
 
@@ -115,6 +115,8 @@
       }
       // neue Features aus der Config landen in der Mitte
       state.order.nice.push(...shuffle([...valid].filter(id => !seen.has(id))));
+      const comments = draft.comments && typeof draft.comments === 'object' ? draft.comments : {};
+      state.comments = Object.fromEntries(Object.entries(comments).filter(([id, c]) => valid.has(id) && typeof c === 'string'));
     } else {
       state.order.nice = shuffle(ids);
     }
@@ -154,6 +156,15 @@
       body.appendChild(desc);
     }
     el.appendChild(body);
+
+    const note = document.createElement('button');
+    note.type = 'button';
+    note.className = 'note-btn' + (state.comments[id] ? ' has-note' : '');
+    note.dataset.note = '';
+    note.setAttribute('aria-label', t('comment'));
+    note.title = state.comments[id] || t('comment');
+    note.textContent = '💬';
+    el.appendChild(note);
 
     return el;
   }
@@ -299,7 +310,7 @@
   }
 
   // ---------- Aktions-Sheet ----------
-  function openSheet(id) {
+  function openSheet(id, focusComment = false) {
     sheetId = id;
     const item = featureById(id);
     const bucket = BUCKETS.find(b => state.order[b].includes(id));
@@ -313,12 +324,15 @@
     $('[data-order="top"]').disabled = $('[data-order="up"]').disabled = list[0] === id;
     $('[data-order="down"]').disabled = list[list.length - 1] === id;
     $('[data-delete]').hidden = !isCustom(id);
+    $('#sheetComment').value = state.comments[id] || '';
     $('#sheet').hidden = false;
     requestAnimationFrame(() => $('#sheet').classList.add('open'));
-    $('.sheet-moves .move:not([hidden])').focus({ preventScroll: true });
+    if (focusComment) $('#sheetComment').focus({ preventScroll: true });
+    else $('.sheet-moves .move:not([hidden])').focus({ preventScroll: true });
   }
   function closeSheet() {
     const sheet = $('#sheet');
+    if (sheetId) render(); // reflect a changed comment on the row
     sheet.classList.remove('open');
     const returnTo = sheetId;
     sheetId = null;
@@ -377,6 +391,7 @@
         body: JSON.stringify({
           buckets: { want: state.order.want, nice: state.order.nice, no: state.order.no },
           custom: usedCustom,
+          comments: Object.fromEntries(Object.entries(state.comments).map(([k, v]) => [k, v.trim()]).filter(([, v]) => v)),
           name: $('#nameInput').value.trim(),
           email,
           lang,
@@ -415,6 +430,7 @@
     $('#list').addEventListener('click', e => {
       const card = e.target.closest('.card');
       if (!card || justDragged) return;
+      if (e.target.closest('[data-note]')) { openSheet(card.dataset.id, true); return; }
       const quick = e.target.closest('[data-quick]');
       if (quick) {
         moveTo(card.dataset.id, quick.dataset.quick);
@@ -442,6 +458,7 @@
       if (order) { reorder(id, order.dataset.order); openSheet(id); return; }
       if (e.target.closest('[data-delete]')) {
         state.custom = state.custom.filter(c => c.id !== id);
+        delete state.comments[id];
         for (const b of BUCKETS) state.order[b] = state.order[b].filter(x => x !== id);
         saveDraft();
         closeSheet();
@@ -449,6 +466,12 @@
       }
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && sheetId) closeSheet(); });
+    $('#sheetComment').addEventListener('input', e => {
+      if (!sheetId) return;
+      const v = e.target.value.slice(0, 500);
+      if (v.trim()) state.comments[sheetId] = v; else delete state.comments[sheetId];
+      saveDraft();
+    });
 
     $('#ideaForm').addEventListener('submit', e => {
       e.preventDefault();

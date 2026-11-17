@@ -23,10 +23,9 @@
       <div class="hero">
         <h1 id="title"></h1>
         <p id="intro" class="intro"></p>
-        <p class="howto" id="howto" data-i18n="howto"></p>
       </div>
 
-      <div id="list" class="list" aria-describedby="howto"></div>
+      <div id="list" class="list"></div>
 
       <form id="ideaForm" class="add-idea" autocomplete="off">
         <label for="ideaInput" data-i18n="ideaLabel"></label>
@@ -92,6 +91,10 @@
       <div class="sheet-grip" aria-hidden="true"></div>
       <h3 id="sheetTitle"></h3>
       <p id="sheetDesc" class="sheet-desc"></p>
+      <label class="sheet-comment">
+        <span data-i18n="commentLabel"></span>
+        <textarea id="sheetComment" rows="3" maxlength="500" data-i18n-placeholder="commentPlaceholder"></textarea>
+      </label>
       <div class="sheet-moves">
         <button type="button" class="move move-want" data-move="want">🔥 <span data-i18n="want"></span></button>
         <button type="button" class="move move-nice" data-move="nice">✨ <span data-i18n="nice"></span></button>
