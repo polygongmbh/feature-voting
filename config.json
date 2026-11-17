@@ -1,0 +1,33 @@
+{
+  "defaultLang": "de",
+  "title": {
+    "de": "Was soll die App können?",
+    "en": "What should the app do?"
+  },
+  "intro": {
+    "de": "Sortiere die Ideen in drei Bereiche. Ganz oben in \"Das will ich!\" steht, was dir am wichtigsten ist. Dauert etwa 2 Minuten.",
+    "en": "Sort the ideas into three groups. Put what matters most to you at the top of \"I want this!\". Takes about 2 minutes."
+  },
+  "testflight": {
+    "url": "https://campus.polygon.gmbh",
+    "text": {
+      "de": "Danke! Lust, die App vorab auszuprobieren? Hier geht's zur TestFlight-Beta.",
+      "en": "Thanks! Want to try the app early? Join the TestFlight beta."
+    }
+  },
+  "privacy": {
+    "de": "Name und E-Mail sind freiwillig. Wir nutzen sie nur, um bei Rückfragen auf dich zuzukommen.",
+    "en": "Name and email are optional. We only use them to follow up on your answers."
+  },
+  "maxCustomIdeas": 5,
+  "features": [
+    { "id": "offline", "title": { "de": "Offline-Modus", "en": "Offline mode" }, "desc": { "de": "Alles funktioniert auch ohne Internet.", "en": "Everything works without internet." } },
+    { "id": "sync", "title": { "de": "Sync zwischen Geräten", "en": "Sync across devices" }, "desc": { "de": "iPhone, iPad und Mac immer auf dem gleichen Stand.", "en": "iPhone, iPad and Mac always in sync." } },
+    { "id": "widgets", "title": { "de": "Homescreen-Widgets", "en": "Home screen widgets" }, "desc": { "de": "Das Wichtigste auf einen Blick, ohne die App zu öffnen.", "en": "The essentials at a glance without opening the app." } },
+    { "id": "share", "title": { "de": "Teilen mit anderen", "en": "Share with others" }, "desc": { "de": "Inhalte mit Freunden oder Familie teilen.", "en": "Share content with friends or family." } },
+    { "id": "darkmode", "title": { "de": "Dark Mode", "en": "Dark mode" }, "desc": { "de": "Dunkles Design für abends.", "en": "Dark theme for the evening." } },
+    { "id": "export", "title": { "de": "Export als PDF/CSV", "en": "Export as PDF/CSV" }, "desc": { "de": "Deine Daten mitnehmen.", "en": "Take your data with you." } },
+    { "id": "reminders", "title": { "de": "Erinnerungen", "en": "Reminders" }, "desc": { "de": "Push-Benachrichtigungen zur richtigen Zeit.", "en": "Push notifications at the right time." } },
+    { "id": "watch", "title": { "de": "Apple-Watch-App", "en": "Apple Watch app" }, "desc": { "de": "Die wichtigsten Funktionen am Handgelenk.", "en": "Key features on your wrist." } }
+  ]
+}

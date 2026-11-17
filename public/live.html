@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Live-Auswertung</title>
+  <link rel="stylesheet" href="/live.css">
+</head>
+<body>
+  <div id="gate" class="gate" hidden>
+    <form id="gateForm">
+      <h1>Live-Auswertung</h1>
+      <p>Admin-Token eingeben</p>
+      <input id="gateInput" type="password" autocomplete="current-password" required>
+      <button type="submit">Öffnen</button>
+      <p id="gateError" class="gate-error" hidden>Token ungültig.</p>
+    </form>
+  </div>
+
+  <div id="app" class="live" hidden>
+    <header class="head">
+      <div class="head-left">
+        <span class="live-dot" id="liveDot" title="Live"></span>
+        <h1 id="title">Live-Auswertung</h1>
+      </div>
+      <div class="head-right">
+        <div class="total"><span id="total">0</span><small id="totalLabel">Antworten</small></div>
+        <div class="seg" role="tablist">
+          <button type="button" data-view="ranking" class="active">Diagramm</button>
+          <button type="button" data-view="cluster">Cluster</button>
+        </div>
+        <a id="exportLink" class="export" href="#">CSV</a>
+      </div>
+    </header>
+
+    <main class="stage">
+      <section class="view view-ranking active" id="view-ranking">
+        <div class="chart-head">
+          <div class="ch-rank"></div>
+          <div class="ch-name"></div>
+          <div class="ch-chart" id="chartHead">
+            <div class="ch-neg"><span><i class="sw no"></i>Brauche ich nicht</span></div>
+            <div class="ch-pos"><span><i class="sw want"></i>Das will ich!</span><span><i class="sw nice"></i>Das wäre nett</span></div>
+          </div>
+          <div class="ch-score">Score</div>
+        </div>
+        <div class="rows" id="rows"></div>
+      </section>
+
+      <section class="view view-cluster" id="view-cluster">
+        <div class="zones">
+          <div class="zone z-want"><span>🔥 Das will ich!</span></div>
+          <div class="zone z-nice"><span>✨ Das wäre nett</span></div>
+          <div class="zone z-no"><span>💤 Brauche ich nicht</span></div>
+        </div>
+        <div class="bubbles" id="bubbles"></div>
+      </section>
+
+      <aside class="ideas">
+        <h2>💡 Eigene Ideen <span id="ideaCount"></span></h2>
+        <ul id="ideas"></ul>
+        <p class="ideas-empty" id="ideasEmpty">Noch keine eigenen Ideen.</p>
+      </aside>
+    </main>
+
+    <div class="empty-state" id="emptyState">
+      <div class="pulse"></div>
+      <p>Warte auf die ersten Antworten …</p>
+    </div>
+  </div>
+
+  <div class="flash" id="flash">+1</div>
+
+  <script src="/live.js"></script>
+</body>
+</html>

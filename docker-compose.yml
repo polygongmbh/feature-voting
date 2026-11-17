@@ -1,0 +1,22 @@
+services:
+  feature-voting:
+    build: .
+    container_name: feature-voting
+    restart: unless-stopped
+    ports:
+      # Only local (healthcheck from the host); Caddy reaches it via noas-shared.
+      - "127.0.0.1:3500:3000"
+    environment:
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?ADMIN_TOKEN in .env setzen}
+      TRUST_PROXY: "1"
+    volumes:
+      - ./data:/data
+      - ./config.json:/app/config.json:ro
+    networks:
+      - default
+      - noas-shared
+
+networks:
+  noas-shared:
+    external: true
+    name: noas-shared
