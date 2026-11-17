@@ -2,8 +2,10 @@
   'use strict';
 
   const BUCKETS = ['want', 'nice', 'no'];
-  const DRAFT_KEY = 'fv-draft-v1';
-  const DONE_KEY = 'fv-submitted-v1';
+  // the survey id is the first path segment: /<id>
+  const SURVEY_ID = decodeURIComponent(location.pathname.split('/')[1] || '');
+  const DRAFT_KEY = `fv-draft-v1:${SURVEY_ID}`;
+  const DONE_KEY = `fv-submitted-v1:${SURVEY_ID}`;
 
   const I18N = {
     de: {
@@ -13,13 +15,15 @@
       ideaPlaceholder: 'Deine Idee …', add: 'Hinzufügen', yourIdea: 'Deine Idee',
       ideaLimit: n => `Maximal ${n} eigene Ideen.`, ideaAdded: 'Idee unter "Das will ich!" eingefügt.',
       progress: (a, b, c) => `${a} will ich · ${b} nett · ${c} nein`,
-      needOne: 'Sortiere mindestens ein Feature ein.',
+      needOne: 'Sortiere mindestens eine Option ein.',
+      noOptions: 'Noch keine Optionen. Du kannst unten eigene Ideen hinzufügen.',
+      notFound: 'Diese Umfrage gibt es nicht (mehr).',
       unsortedLeft: n => `${n} noch offen. Trotzdem weiter?`,
       contactTitle: 'Dürfen wir bei Rückfragen auf dich zukommen?', save: 'Speichern', saved: 'Gespeichert ✓',
       name: 'Name (optional)', email: 'E-Mail (optional)', emailInvalid: 'Die E-Mail-Adresse sieht nicht richtig aus.',
       submit: 'Abschicken', sending: 'Wird gesendet …',
       submitFail: 'Das hat nicht geklappt. Bitte versuch es nochmal.',
-      thanks: 'Danke dir!', tfButton: 'Zur TestFlight-Beta',
+      thanks: 'Danke dir!', linkButton: 'Weiter',
       backToPool: 'Zurück in den Stapel', toTop: 'Ganz nach oben', delete: 'Idee löschen', close: 'Schließen',
       movedTo: b => `→ ${I18N.de[b]}`, langSwitch: 'EN',
       quickWant: 'Will ich', quickNice: 'Nett', quickNo: 'Nein',
@@ -33,13 +37,15 @@
       ideaPlaceholder: 'Your idea …', add: 'Add', yourIdea: 'Your idea',
       ideaLimit: n => `Up to ${n} ideas of your own.`, ideaAdded: 'Idea added under "I want this!".',
       progress: (a, b, c) => `${a} want · ${b} nice · ${c} no`,
-      needOne: 'Sort at least one feature.',
+      needOne: 'Sort at least one option.',
+      noOptions: 'No options yet. You can add your own ideas below.',
+      notFound: "This survey doesn't exist (anymore).",
       unsortedLeft: n => `${n} still open. Continue anyway?`,
       contactTitle: 'May we get back to you with questions?', save: 'Save', saved: 'Saved ✓',
       name: 'Name (optional)', email: 'Email (optional)', emailInvalid: "That email address doesn't look right.",
       submit: 'Submit', sending: 'Sending …',
       submitFail: "That didn't work. Please try again.",
-      thanks: 'Thank you!', tfButton: 'Join the TestFlight beta',
+      thanks: 'Thank you!', linkButton: 'Continue',
       backToPool: 'Back to the pile', toTop: 'Move to top', delete: 'Delete idea', close: 'Close',
       movedTo: b => `→ ${I18N.en[b]}`, langSwitch: 'DE',
       quickWant: 'Want', quickNice: 'Nice', quickNo: 'No',
@@ -58,7 +64,8 @@
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   const t = (k, ...a) => { const v = I18N[lang][k] ?? I18N.de[k] ?? k; return typeof v === 'function' ? v(...a) : v; };
-  const ct = v => (typeof v === 'string' ? v : (v?.[lang] ?? v?.[cfg?.defaultLang] ?? Object.values(v || {})[0] ?? ''));
+  // survey texts are plain strings; UI texts from the server (privacy) may still be {de, en}
+  const ct = v => (typeof v === 'string' ? v : (v?.[lang] ?? v?.de ?? Object.values(v || {})[0] ?? ''));
   const store = {
     get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* egal */ } },
@@ -83,17 +90,26 @@
     const params = new URLSearchParams(location.search);
     if (params.has('reset')) { store.del(DRAFT_KEY); store.del(DONE_KEY); }
 
+    const navLang = (navigator.language || '').slice(0, 2);
+    lang = params.get('lang') || store.get('fv-lang') || (I18N[navLang] ? navLang : 'de');
+    if (!I18N[lang]) lang = 'de';
+
+    let status = 0;
     try {
-      const res = await fetch('/api/config');
+      const res = await fetch('/api/surveys/' + encodeURIComponent(SURVEY_ID));
+      status = res.status;
+      if (!res.ok) throw new Error(String(status));
       cfg = await res.json();
+      cfg.features = Array.isArray(cfg.features) ? cfg.features : [];
     } catch {
-      document.body.innerHTML = '<p style="padding:2rem;font-family:system-ui">Konnte die Umfrage nicht laden. / Could not load the survey.</p>';
+      const msg = status === 404 || !SURVEY_ID ? t('notFound')
+        : (lang === 'en' ? 'Could not load the survey.' : 'Konnte die Umfrage nicht laden.');
+      const p = document.createElement('p');
+      p.className = 'load-error';
+      p.textContent = msg;
+      document.querySelector('main').replaceChildren(p);
       return;
     }
-
-    const navLang = (navigator.language || '').slice(0, 2);
-    lang = params.get('lang') || store.get('fv-lang') || (I18N[navLang] ? navLang : cfg.defaultLang) || 'de';
-    if (!I18N[lang]) lang = 'de';
 
     loadDraft();
     setupSortable();
@@ -237,12 +253,21 @@
     $('#title').textContent = title;
     document.title = title;
     $('#intro').textContent = ct(cfg.intro);
+    $('#intro').hidden = !ct(cfg.intro);
+    $('#noOptions').hidden = cfg.features.length > 0;
     $('#privacy').textContent = ct(cfg.privacy);
-    $('#tfText').textContent = ct(cfg.testflight?.text);
-    const url = cfg.testflight?.url || '';
-    $('#tfLink').href = url || '#';
-    $('#tfLink').hidden = !url;
-    $('#tfUrl').textContent = url;
+    // custom thanks text replaces the generic heading
+    const thanks = ct(cfg.thanks);
+    $('#thanksTitle').textContent = t('thanks');
+    $('#thanksTitle').hidden = !!thanks;
+    $('#thanksText').textContent = thanks;
+    $('#thanksText').hidden = !thanks;
+    const url = cfg.linkUrl || '';
+    $('#linkBtn').href = url || '#';
+    $('#linkBtn').hidden = !url;
+    $('#linkLabel').textContent = ct(cfg.linkLabel) || t('linkButton');
+    $('#linkUrl').textContent = url;
+    $('#linkUrl').hidden = !url;
     render();
   }
 
@@ -355,8 +380,15 @@
     btn.disabled = true;
     btn.textContent = t('sending');
     $('#submitError').hidden = true;
+    if (!BUCKETS.some(b => state.order[b].length)) {
+      $('#submitError').textContent = t('needOne');
+      $('#submitError').hidden = false;
+      btn.disabled = false;
+      btn.textContent = t('submit');
+      return;
+    }
     try {
-      const res = await fetch('/api/responses', {
+      const res = await fetch(`/api/surveys/${encodeURIComponent(SURVEY_ID)}/responses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

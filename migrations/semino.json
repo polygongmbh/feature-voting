@@ -1,0 +1,60 @@
+{
+  "id": "semino",
+  "title": "Was soll die App können?",
+  "intro": "Was ist dir wichtig? Zieh die Punkte in die passende Gruppe.",
+  "thanks": "Danke! Lust, die App vorab auszuprobieren? Hier geht's zur TestFlight-Beta.",
+  "linkUrl": "https://campus.polygon.gmbh",
+  "linkLabel": "Zur TestFlight-Beta",
+  "features": [
+    {
+      "id": "unimail",
+      "title": "Integration Unimail-Postfach",
+      "desc": "Ohne extra Login, direkt bei den Nachrichten und Benachrichtigungen"
+    },
+    {
+      "id": "file-sharing",
+      "title": "File Sharing",
+      "desc": "Mit Mitstudierenden und in Teamchats"
+    },
+    {
+      "id": "kalender",
+      "title": "Kalenderübersicht",
+      "desc": "mit cmlife"
+    },
+    {
+      "id": "studentenausweis",
+      "title": "Integration Studentenausweis",
+      "desc": "Mensa-Zahlung, Ticket"
+    },
+    {
+      "id": "buchung",
+      "title": "Buchungsfunktion ausbauen",
+      "desc": "mehr Räume & Hochschulsport"
+    },
+    {
+      "id": "security",
+      "title": "Security",
+      "desc": "PIN bei Abwesenheit"
+    },
+    {
+      "id": "auto-enrollment",
+      "title": "Auto-Einschreibung mit cmlife",
+      "desc": "Mit einem Klick in cmlife und im passenden E-Learning-Kurs angemeldet"
+    },
+    {
+      "id": "mensa",
+      "title": "Mensa-Speiseplan",
+      "desc": "Was es heute und diese Woche gibt"
+    },
+    {
+      "id": "campus-map",
+      "title": "Campus-Karte",
+      "desc": "Gebäude, Räume und Wege auf dem Campus finden"
+    },
+    {
+      "id": "parking",
+      "title": "Parkplatzfinder",
+      "desc": "Freie Parkplätze und Auslastung direkt in der App"
+    }
+  ]
+}

@@ -4,6 +4,8 @@ ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm ci --omit=dev || npm install --omit=dev
 COPY server.js config.json ./
+COPY lib ./lib
+COPY migrations ./migrations
 COPY public ./public
 ENV DATA_DIR=/data PORT=3000
 VOLUME ["/data"]

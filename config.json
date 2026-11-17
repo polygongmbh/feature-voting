@@ -1,35 +1,7 @@
 {
-  "defaultLang": "de",
-  "title": {
-    "de": "Was soll die App können?",
-    "en": "What should the app do?"
-  },
-  "intro": {
-    "de": "Was ist dir wichtig? Zieh die Punkte in die passende Gruppe.",
-    "en": "What matters to you? Drag the items into the right group."
-  },
-  "testflight": {
-    "url": "https://campus.polygon.gmbh",
-    "text": {
-      "de": "Danke! Lust, die App vorab auszuprobieren? Hier geht's zur TestFlight-Beta.",
-      "en": "Thanks! Want to try the app early? Join the TestFlight beta."
-    }
-  },
   "privacy": {
     "de": "Name und E-Mail sind freiwillig. Wir nutzen sie nur, um bei Rückfragen auf dich zuzukommen.",
     "en": "Name and email are optional. We only use them to follow up on your answers."
   },
-  "maxCustomIdeas": 5,
-  "features": [
-    { "id": "unimail", "title": { "de": "Integration Unimail-Postfach", "en": "Uni mail inbox integration" }, "desc": { "de": "Ohne extra Login, direkt bei den Nachrichten und Benachrichtigungen", "en": "No extra login, right next to messages and notifications" } },
-    { "id": "file-sharing", "title": { "de": "File Sharing", "en": "File sharing" }, "desc": { "de": "Mit Mitstudierenden und in Teamchats", "en": "With fellow students and in team chats" } },
-    { "id": "kalender", "title": { "de": "Kalenderübersicht", "en": "Calendar overview" }, "desc": { "de": "mit cmlife", "en": "with cmlife" } },
-    { "id": "studentenausweis", "title": { "de": "Integration Studentenausweis", "en": "Student ID integration" }, "desc": { "de": "Mensa-Zahlung, Ticket", "en": "Cafeteria payment, ticket" } },
-    { "id": "buchung", "title": { "de": "Buchungsfunktion ausbauen", "en": "Extended booking" }, "desc": { "de": "mehr Räume & Hochschulsport", "en": "More rooms & university sports" } },
-    { "id": "security", "title": { "de": "Security", "en": "Security" }, "desc": { "de": "PIN bei Abwesenheit", "en": "PIN when away" } },
-    { "id": "auto-enrollment", "title": { "de": "Auto-Einschreibung mit cmlife", "en": "Auto-enrollment with cmlife" }, "desc": { "de": "Mit einem Klick in cmlife und im passenden E-Learning-Kurs angemeldet", "en": "One click signs you up in cmlife and the matching e-learning course" } },
-    { "id": "mensa", "title": { "de": "Mensa-Speiseplan", "en": "Cafeteria menu" }, "desc": { "de": "Was es heute und diese Woche gibt", "en": "What's on today and this week" } },
-    { "id": "campus-map", "title": { "de": "Campus-Karte", "en": "Campus map" }, "desc": { "de": "Gebäude, Räume und Wege auf dem Campus finden", "en": "Find buildings, rooms and routes on campus" } },
-    { "id": "parking", "title": { "de": "Parkplatzfinder", "en": "Parking finder" }, "desc": { "de": "Freie Parkplätze und Auslastung direkt in der App", "en": "Free spaces and occupancy right in the app" } }
-  ]
+  "maxCustomIdeas": 5
 }

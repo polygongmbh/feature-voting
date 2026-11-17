@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Umfragen</title>
+  <link rel="stylesheet" href="/live.css">
+  <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+  <main class="adm">
+    <h1>Umfragen</h1>
+
+    <form id="tokenForm" class="adm-card" hidden>
+      <h2>Admin-Token</h2>
+      <p>Die Übersicht ist geschützt. Bitte den Admin-Token eingeben.</p>
+      <div class="adm-row">
+        <input id="tokenInput" type="password" autocomplete="current-password" placeholder="Admin-Token" required>
+        <button type="submit" class="opt-btn primary">Weiter</button>
+      </div>
+      <p id="tokenError" class="opt-error" hidden>Token ungültig.</p>
+    </form>
+
+    <div id="panel" hidden>
+      <form id="newForm" class="adm-card">
+        <h2>Neue Umfrage</h2>
+        <div class="adm-row">
+          <label class="adm-grow">Titel<input id="newTitle" type="text" maxlength="120" required placeholder="z. B. Funktionen für die App"></label>
+          <label>Adresse (optional)<input id="newId" type="text" maxlength="40" pattern="[a-z0-9][a-z0-9\-]{0,39}" placeholder="aus dem Titel"></label>
+          <button type="submit" class="opt-btn primary">Anlegen</button>
+        </div>
+        <p id="newHint" class="adm-hint"></p>
+        <p id="newError" class="opt-error" hidden></p>
+      </form>
+
+      <ul id="list" class="adm-list"></ul>
+      <p id="empty" class="ideas-empty" hidden>Noch keine Umfragen. Oben die erste anlegen.</p>
+    </div>
+  </main>
+  <script src="/admin.js"></script>
+</body>
+</html>

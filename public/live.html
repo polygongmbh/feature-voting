@@ -24,6 +24,7 @@
           <button type="button" data-view="responses">Antworten</button>
         </div>
         <a id="exportLink" class="export" href="#" hidden>CSV</a>
+        <a class="export all-link" href="/">Alle Umfragen</a>
       </div>
     </header>
 
@@ -53,7 +54,7 @@
       <section class="view view-options view-token" id="view-token">
         <form id="tokenForm" class="token-form">
           <h2>Admin-Token</h2>
-          <p>Optionen und einzelne Antworten (mit Namen und E-Mail) sind geschützt. Bitte den Admin-Token eingeben.</p>
+          <p>Bearbeiten und einzelne Antworten (mit Namen und E-Mail) sind geschützt. Bitte den Admin-Token eingeben.</p>
           <div class="opt-row-actions">
             <input id="tokenInput" type="password" autocomplete="current-password" placeholder="Admin-Token" required>
             <button type="submit" class="opt-btn primary">Weiter</button>
@@ -65,14 +66,24 @@
       <section class="view view-options" id="view-options">
         <form id="optForm" class="opt-form">
           <div class="opt-head">
-            <h2>Optionen der Umfrage</h2>
+            <h2>Umfrage bearbeiten</h2>
             <p>Änderungen gelten sofort für alle, die die Umfrage neu öffnen. Wer schon geantwortet hat, behält die alte Wertung; gelöschte Optionen fallen aus der Auswertung.</p>
           </div>
-          <div class="opt-labels" aria-hidden="true"><span>Titel (Deutsch)</span><span>Titel (Englisch)</span><span>Beschreibung (Deutsch)</span><span>Beschreibung (Englisch)</span><span></span></div>
+          <div class="sv-fields">
+            <label class="sv-wide">Titel<input id="svTitle" type="text" maxlength="120" required></label>
+            <label class="sv-wide">Einleitung<textarea id="svIntro" rows="2" maxlength="400" placeholder="Kurz erklären, worum es geht (optional)"></textarea></label>
+            <label class="sv-wide">Danke-Text<textarea id="svThanks" rows="2" maxlength="400" placeholder="Wird nach dem Abschicken gezeigt (optional)"></textarea></label>
+            <label>Link-Adresse<input id="svLinkUrl" type="url" maxlength="300" placeholder="https://… (optional)"></label>
+            <label>Link-Text<input id="svLinkLabel" type="text" maxlength="60" placeholder="z. B. Zur Testversion"></label>
+          </div>
+          <h3 class="opt-sub">Optionen <span id="optCount" class="resp-count"></span></h3>
+          <div class="opt-labels" aria-hidden="true"><span>Titel</span><span>Beschreibung</span><span></span></div>
           <ol id="optList" class="opt-list"></ol>
+          <p id="optEmpty" class="ideas-empty" hidden>Noch keine Optionen.</p>
           <div class="opt-foot">
             <button type="button" id="optAdd" class="opt-btn">+ Option hinzufügen</button>
             <span id="optStatus" class="opt-status" role="status"></span>
+            <a id="svOpen" class="opt-btn" href="#" target="_blank" rel="noopener">Umfrage öffnen</a>
             <button type="submit" class="opt-btn primary">Speichern</button>
           </div>
         </form>

@@ -3,11 +3,12 @@
 
   const $ = s => document.querySelector(s);
   const params = new URLSearchParams(location.search);
-  const lang = params.get('lang') || 'de';
+  const SID = location.pathname.split('/')[1]; // served at /<survey id>/live
+  const API = '/api/surveys/' + encodeURIComponent(SID);
   const TOKEN_KEY = 'fv-admin-token';
   const BUCKET_LABEL = { want: 'Das will ich!', nice: 'Das wäre nett', no: 'Brauche ich nicht', null: 'nicht einsortiert' };
 
-  const tx = v => (typeof v === 'string' ? v : (v?.[lang] ?? v?.de ?? Object.values(v || {})[0] ?? ''));
+  const withToken = path => path + (path.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
   const ss = {
     get: k => { try { return sessionStorage.getItem(k); } catch { return null; } },
     set: (k, v) => { try { sessionStorage.setItem(k, v); } catch { /* egal */ } },
@@ -32,8 +33,8 @@
 
   // Join screen: QR code + address of the survey, shown until the first answer arrives
   function renderJoin() {
-    const url = location.origin + '/';
-    $('#joinUrl').textContent = location.host;
+    const url = location.origin + '/' + SID;
+    $('#joinUrl').textContent = location.host + '/' + SID;
     try {
       const qr = qrcode(0, 'M');
       qr.addData(url);
@@ -62,9 +63,8 @@
     if (es) es.close();
     $('#app').hidden = false;
     // CSV export contains names/emails: only offered when an admin token was given
-    $('#exportLink').hidden = !token;
-    if (token) $('#exportLink').href = '/api/export.csv?token=' + encodeURIComponent(token);
-    es = new EventSource('/api/stream');
+    syncExport();
+    es = new EventSource(API + '/stream');
     es.addEventListener('update', ev => update(JSON.parse(ev.data)));
     es.onopen = () => $('#liveDot').classList.add('on');
     es.onerror = () => $('#liveDot').classList.remove('on');
@@ -158,7 +158,7 @@
       el.style.height = (h - 0.5 * remPx) + 'px';
       el.classList.toggle('top3', i < 3 && f.n > 0);
       el.querySelector('.pos').textContent = f.n ? i + 1 : '–';
-      el.querySelector('.name span').textContent = tx(f.title);
+      el.querySelector('.name span').textContent = f.title;
       // vote count only when it differs from the number of answers (otherwise it repeats the same number on every row)
       el.querySelector('.name small').textContent = !f.n ? 'noch keine Stimmen' : f.n < data.total ? `${f.n} von ${data.total}` : '';
 
@@ -247,7 +247,7 @@
         area.appendChild(el);
         bubbleEls.set(f.id, el);
       }
-      el.querySelector('span').textContent = tx(f.title);
+      el.querySelector('span').textContent = f.title;
       el.querySelector('small').textContent = f.n < data.total ? `${f.score} · ${f.n} von ${data.total}` : String(f.score);
       el.style.width = el.style.height = n.r * 2 + 'px';
       el.style.setProperty('--d', n.r * 2 + 'px');
@@ -305,45 +305,60 @@
   }
   document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
 
-  // ---------- Optionen bearbeiten (needs the admin token) ----------
+  // ---------- Umfrage bearbeiten (needs the admin token) ----------
   let optLoaded = false;
   const slug = s => (s || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
     .replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'option';
+  const SV_FIELDS = { title: '#svTitle', intro: '#svIntro', thanks: '#svThanks', linkUrl: '#svLinkUrl', linkLabel: '#svLinkLabel' };
 
-  async function openOptions() {
-    if (optLoaded) return;
-    const cfg = await fetch('/api/config').then(r => r.json());
-    $('#optList').replaceChildren(...cfg.features.map(optRow));
-    optLoaded = true;
+  function fillEditor(sv) {
+    for (const [k, sel] of Object.entries(SV_FIELDS)) $(sel).value = sv[k] || '';
+    $('#optList').replaceChildren(...sv.features.map(optRow));
+    syncOptCount();
   }
+  async function openOptions() {
+    $('#svOpen').href = '/' + SID;
+    if (optLoaded) return;
+    const res = await fetch(API);
+    if (!res.ok) return setStatus('Fehler: Umfrage nicht gefunden', 'err');
+    fillEditor(await res.json());
+    optLoaded = true;
+    // why: a fresh survey (from /admin) has no options yet, so the cursor starts in the first option row
+    if (!$('#optList').children.length) $('#optAdd').click();
+  }
+  const syncOptCount = () => {
+    const n = $('#optList').children.length;
+    $('#optCount').textContent = n ? `(${n})` : '';
+    $('#optEmpty').hidden = n > 0;
+  };
 
   function optRow(f = {}) {
     const li = document.createElement('li');
     li.className = 'opt-row';
     if (f.id) li.dataset.id = f.id; // existing ids never change: answers reference them
-    const field = (key, lang, ph) => {
+    const field = (key, ph, max) => {
       const i = document.createElement('input');
       i.type = 'text';
-      i.dataset.key = key; i.dataset.lang = lang;
-      i.maxLength = key === 'title' ? 80 : 200;
+      i.dataset.key = key;
+      i.maxLength = max;
       i.placeholder = ph;
-      i.value = (typeof f[key] === 'string' ? (lang === 'de' ? f[key] : '') : f[key]?.[lang]) || '';
+      i.value = f[key] || '';
       return i;
     };
     const del = document.createElement('button');
     del.type = 'button'; del.className = 'opt-del'; del.textContent = '✕'; del.title = 'Entfernen';
-    del.addEventListener('click', () => { li.remove(); setStatus('Nicht gespeichert'); });
-    li.append(field('title', 'de', 'Titel'), field('title', 'en', 'Title'), field('desc', 'de', 'Beschreibung (optional)'), field('desc', 'en', 'Description (optional)'), del);
-    li.addEventListener('input', () => setStatus('Nicht gespeichert'));
+    del.addEventListener('click', () => { li.remove(); syncOptCount(); setStatus('Nicht gespeichert'); });
+    li.append(field('title', 'Titel', 120), field('desc', 'Beschreibung (optional)', 200), del);
     return li;
   }
   const setStatus = (msg, kind = '') => { const s = $('#optStatus'); s.textContent = msg; s.className = 'opt-status ' + kind; };
+  $('#optForm').addEventListener('input', () => setStatus('Nicht gespeichert'));
 
   $('#optAdd').addEventListener('click', () => {
     const li = optRow();
     $('#optList').append(li);
+    syncOptCount();
     li.querySelector('input').focus();
-    setStatus('Nicht gespeichert');
   });
 
   $('#optForm').addEventListener('submit', async e => {
@@ -351,27 +366,29 @@
     const used = new Set([...$('#optList').children].map(li => li.dataset.id).filter(Boolean));
     const features = [];
     for (const li of $('#optList').children) {
-      const val = (k, l) => li.querySelector(`[data-key="${k}"][data-lang="${l}"]`).value.trim();
-      const title = { de: val('title', 'de'), en: val('title', 'en') };
-      if (!title.de && !title.en) continue; // empty rows are dropped
+      const val = k => li.querySelector(`[data-key="${k}"]`).value.trim();
+      const title = val('title');
+      if (!title) continue; // empty rows are dropped
       let id = li.dataset.id;
       if (!id) {
-        const base = slug(title.de || title.en);
+        const base = slug(title);
         id = base; for (let n = 2; used.has(id); n++) id = base + '-' + n;
         used.add(id);
       }
-      features.push({ id, title, desc: { de: val('desc', 'de'), en: val('desc', 'en') } });
+      features.push({ id, title, desc: val('desc') });
     }
-    if (!features.length) return setStatus('Mindestens eine Option nötig', 'err');
+    const body = { features };
+    for (const [k, sel] of Object.entries(SV_FIELDS)) body[k] = $(sel).value.trim();
+    if (body.linkUrl && !/^https?:\/\//i.test(body.linkUrl)) return setStatus('Link muss mit http:// oder https:// beginnen', 'err');
     setStatus('Speichert …');
     try {
-      const res = await fetch('/api/features?token=' + encodeURIComponent(token), {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ features }),
+      const res = await fetch(withToken(API), {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       });
       if (res.status === 401) return dropToken();
       const out = await res.json();
       if (!res.ok) throw new Error(out.error);
-      $('#optList').replaceChildren(...out.features.map(optRow));
+      fillEditor(out);
       setStatus('Gespeichert ✓', 'ok');
     } catch (err) {
       setStatus('Fehler: ' + (err.message || 'nicht gespeichert'), 'err');
@@ -385,14 +402,19 @@
     $('#tokenError').hidden = ok;
     if (!ok) return;
     token = t; ss.set(TOKEN_KEY, t);
-    $('#exportLink').hidden = false;
-    $('#exportLink').href = '/api/export.csv?token=' + encodeURIComponent(token);
+    syncExport();
     setView(view);
   });
 
+  // CSV export contains names/emails: only offered when an admin token is known
+  function syncExport() {
+    $('#exportLink').hidden = !token;
+    if (token) $('#exportLink').href = withToken(API + '/export.csv');
+  }
+
   function dropToken() {
     token = ''; ss.set(TOKEN_KEY, '');
-    $('#exportLink').hidden = true;
+    syncExport();
     $('#tokenError').hidden = false;
     setView(view);
   }
@@ -400,13 +422,11 @@
   // ---------- Antworten ansehen und löschen (needs the admin token) ----------
   const fmtTime = iso => new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   async function openResponses() {
-    const [cfg, res] = await Promise.all([
-      fetch('/api/config').then(r => r.json()),
-      fetch('/api/responses?token=' + encodeURIComponent(token)),
-    ]);
+    const res = await fetch(withToken(API + '/responses'));
     if (res.status === 401) return dropToken();
     const { responses } = await res.json();
-    const titleOf = (r, id) => tx(cfg.features.find(f => f.id === id)?.title) || r.custom.find(c => c.id === id)?.text || id;
+    const titles = new Map((prev?.features || []).map(f => [f.id, f.title]));
+    const titleOf = (r, id) => titles.get(id) || r.custom.find(c => c.id === id)?.text || id;
     $('#respCount').textContent = responses.length || '';
     $('#respEmpty').hidden = responses.length > 0;
     $('#respList').replaceChildren(...responses.map(r => {
@@ -423,7 +443,7 @@
       del.type = 'button'; del.className = 'opt-btn resp-del'; del.textContent = 'Löschen';
       del.addEventListener('click', async () => {
         if (!confirm('Diese Antwort endgültig löschen?')) return;
-        const d = await fetch(`/api/responses/${r.id}?token=` + encodeURIComponent(token), { method: 'DELETE' });
+        const d = await fetch(withToken('/api/responses/' + encodeURIComponent(r.id)), { method: 'DELETE' });
         if (d.status === 401) return dropToken();
         openResponses();
       });

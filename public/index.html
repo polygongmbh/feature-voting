@@ -20,6 +20,8 @@
         <p id="intro" class="intro"></p>
       </div>
 
+      <p id="noOptions" class="no-options" data-i18n="noOptions" hidden></p>
+
       <div id="list" class="list"></div>
 
       <form id="ideaForm" class="add-idea" autocomplete="off">
@@ -42,16 +44,15 @@
       </div>
     </section>
 
-    <!-- Danke + TestFlight; Name/E-Mail optional nachträglich zur schon gespeicherten Antwort -->
+    <!-- Danke + optionaler Link; Name/E-Mail optional nachträglich zur schon gespeicherten Antwort -->
     <section id="step-done" class="step narrow done" hidden>
       <div class="confetti" aria-hidden="true">🎉</div>
-      <h1 data-i18n="thanks"></h1>
-      <p class="intro" id="tfText"></p>
-      <a id="tfLink" class="btn primary big" href="#" rel="noopener" target="_blank">
-        <span class="tf-icon" aria-hidden="true">✈️</span>
-        <span data-i18n="tfButton"></span>
+      <h1 id="thanksTitle"></h1>
+      <p class="thanks-text" id="thanksText" hidden></p>
+      <a id="linkBtn" class="btn primary big" href="#" rel="noopener" target="_blank" hidden>
+        <span id="linkLabel"></span>
       </a>
-      <p class="tf-url" id="tfUrl"></p>
+      <p class="link-url" id="linkUrl" hidden></p>
 
       <form id="contactForm" class="details-form contact" novalidate>
         <h2 data-i18n="contactTitle"></h2>

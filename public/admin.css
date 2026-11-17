@@ -1,0 +1,32 @@
+/* Survey overview: reuses the live view's variables and buttons (live.css), but at normal page size */
+:root { font-size: 17px; }
+.adm { max-width: 56rem; margin: 0 auto; padding: 2rem 1rem 3rem; }
+.adm h1 { margin: 0 0 1.2rem; font-size: 2.2rem; letter-spacing: -.02em; }
+.adm h2 { margin: 0 0 .4rem; font-size: 1.3rem; }
+.adm p { margin: 0 0 .8rem; color: var(--muted); }
+.adm-card { background: var(--panel); border: 1px solid var(--border); border-radius: 1rem; padding: 1.1rem 1.2rem; margin-bottom: 1.4rem; }
+.adm-row { display: flex; align-items: flex-end; gap: .8rem; flex-wrap: wrap; }
+.adm-row label { display: grid; gap: .3rem; color: var(--muted); font-size: .85rem; font-weight: 700; }
+.adm-grow { flex: 1; min-width: 14rem; }
+.adm input {
+  width: 100%; padding: .6rem .75rem; border-radius: .6rem; border: 1px solid var(--border);
+  background: var(--panel-solid); color: var(--text); font: inherit; font-weight: 400;
+}
+.adm input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.adm-row > input { flex: 1; min-width: 12rem; width: auto; }
+.adm-hint { margin: .5rem 0 0 !important; font-size: .9rem; }
+.adm-hint:empty, .opt-error:empty { display: none; }
+.adm .opt-error { margin: .5rem 0 0; }
+
+.adm-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.adm-item {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  background: var(--panel-solid); border: 1px solid var(--border); border-radius: .8rem; padding: .8rem 1rem;
+}
+.adm-main { flex: 1; min-width: 12rem; }
+.adm-main strong { display: block; font-size: 1.15rem; }
+.adm-meta { color: var(--muted); font-size: .9rem; }
+.adm-meta code { font-size: .95em; color: var(--text); }
+.adm-links { display: flex; gap: .5rem; }
+.adm-links a { color: var(--text); text-decoration: none; }
+.adm-links a.primary { color: #fff; }

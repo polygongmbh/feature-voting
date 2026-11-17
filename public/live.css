@@ -31,13 +31,15 @@ button { font: inherit; color: inherit; }
 
 /* ---------- Kopf ---------- */
 .live { height: 100vh; display: flex; flex-direction: column; padding: 1.4rem 1.8rem 1.6rem; }
-.head { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; flex: none; }
-.head-left { display: flex; align-items: center; gap: 1rem; min-width: 0; }
-.head h1 { margin: 0; font-size: 2.5rem; letter-spacing: -.02em; line-height: 1.1; }
+/* one header row on the projector: a long title wraps within its own space (max two lines) instead of pushing the tabs down */
+.head { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: nowrap; margin-bottom: 1.2rem; flex: none; }
+.head-left { display: flex; align-items: center; gap: 1rem; min-width: 0; flex: 1; }
+.head h1 { margin: 0; font-size: 2.3rem; letter-spacing: -.02em; line-height: 1.1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .live-dot { width: .9rem; height: .9rem; border-radius: 50%; background: #ef4444; flex: none; }
 .live-dot.on { background: #22c55e; animation: livepulse 2s infinite; }
 @keyframes livepulse { 0% { box-shadow: 0 0 0 0 #22c55e88; } 70% { box-shadow: 0 0 0 .8rem #22c55e00; } 100% { box-shadow: 0 0 0 0 #22c55e00; } }
-.head-right { display: flex; align-items: center; gap: 1.2rem; }
+.head-right { display: flex; align-items: center; gap: 1.2rem; flex: none; }
+@media (max-width: 900px) { .head { flex-wrap: wrap; } }
 .total { display: flex; align-items: baseline; gap: .5rem; }
 .total span { font-size: 3.2rem; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.03em; line-height: 1; display: inline-block; }
 .total small { color: var(--muted); font-size: 1.2rem; font-weight: 600; }
@@ -48,6 +50,8 @@ button { font: inherit; color: inherit; }
 .seg button.active { background: var(--text); color: var(--bg); }
 .export { color: var(--muted); text-decoration: none; font-size: .85rem; font-weight: 700; border: 1px solid var(--border); padding: .55rem .8rem; border-radius: .6rem; }
 .export:hover { color: var(--text); }
+/* small link in the top padding, outside the header flow so the projector layout does not wrap */
+.all-link { position: fixed; top: .25rem; right: 1.8rem; z-index: 41; border: 0; padding: .1rem 0; font-size: .7rem; font-weight: 600; }
 .join { cursor: pointer; }
 /* header stays above the QR overlay so the tabs remain reachable */
 .head { position: relative; z-index: 40; }
@@ -60,15 +64,23 @@ button { font: inherit; color: inherit; }
 .view-options h2 { margin: 0 0 .3rem; font-size: 1.6rem; }
 .view-options p { margin: 0 0 1rem; color: var(--muted); }
 .token-form { max-width: 34rem; }
-.opt-labels, .opt-row { display: grid; grid-template-columns: 1fr 1fr 1.4fr 1.4fr 2.6rem; gap: .5rem; align-items: center; }
+.opt-labels, .opt-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) 2.6rem; gap: .5rem; align-items: center; }
 .opt-labels { color: var(--muted); font-size: .85rem; font-weight: 700; padding: 0 0 .4rem; }
 .opt-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
-.view-options input {
+.sv-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem 1rem; max-width: 60rem; }
+.sv-fields label { display: grid; gap: .3rem; color: var(--muted); font-size: .85rem; font-weight: 700; }
+.sv-wide { grid-column: 1 / -1; }
+.opt-sub { margin: 1.4rem 0 .5rem; font-size: 1.25rem; }
+.view-options textarea { resize: vertical; line-height: 1.35; }
+.sv-fields label > input, .sv-fields label > textarea { font-weight: 400; }
+.view-options input, .view-options textarea {
   width: 100%; min-width: 0; padding: .6rem .75rem; border-radius: .6rem; border: 1px solid var(--border);
   background: var(--panel-solid); color: var(--text); font: inherit;
 }
-.view-options input:focus { outline: 2px solid var(--accent); border-color: transparent; }
-.opt-row input[data-key="title"] { font-weight: 700; }
+.view-options input:focus, .view-options textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.opt-row input[data-key="title"], #svTitle { font-weight: 700; color: var(--text); }
+.opt-foot { position: sticky; bottom: -1.2rem; background: var(--panel); padding: .6rem 0 .2rem; }
+a.opt-btn { color: var(--text); text-decoration: none; }
 .opt-del { border: 1px solid var(--border); background: transparent; border-radius: .6rem; height: 100%; cursor: pointer; color: var(--muted); }
 .opt-del:hover { color: #dc2626; border-color: #dc2626; }
 .opt-foot, .opt-row-actions { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; }
@@ -79,6 +91,8 @@ button { font: inherit; color: inherit; }
 .opt-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 @media (max-width: 900px) {
   .opt-labels { display: none; }
+  .sv-fields { grid-template-columns: 1fr; }
+  .opt-foot { flex-wrap: wrap; }
   .opt-row { grid-template-columns: 1fr; padding-bottom: .6rem; border-bottom: 1px solid var(--border); }
   .opt-del { justify-self: end; padding: .4rem .9rem; }
 }
