@@ -1,9 +1,9 @@
 # Feature-Voting
 
-Kleine selbst gehostete Umfrage-App: Teilnehmende ziehen die Zeilen einer flachen, vertikalen Liste in die Abschnitte **Das will ich! / Das wäre nett / Brauche ich nicht** (die ganze Zeile ist ziehbar, auf dem Handy kurz halten; Antippen öffnet weitere Optionen). Alle Features starten in der Mitte ("Das wäre nett"), für alle in einer eigenen, zufälligen Reihenfolge, damit die Position die Wertung nicht beeinflusst. Teilnehmende können eigene Ideen ergänzen. "Abschicken" speichert die Antwort sofort; auf der Danke-Seite mit dem TestFlight-Link lassen sich danach optional Name und E-Mail zur eigenen Antwort ergänzen (der Browser bekommt dafür einen Schlüssel, der Server speichert nur dessen Hash). Für dich gibt es eine Live-Auswertung im Mentimeter-Stil.
+Kleine selbst gehostete Umfrage-App für beliebig viele Umfragen: Teilnehmende ziehen die Zeilen einer flachen, vertikalen Liste in die Abschnitte **Das will ich! / Das wäre nett / Brauche ich nicht** (die ganze Zeile ist ziehbar, auf dem Handy kurz halten; Antippen öffnet weitere Optionen). Alle Optionen starten in der Mitte ("Das wäre nett"), für alle in einer eigenen, zufälligen Reihenfolge, damit die Position die Wertung nicht beeinflusst. Teilnehmende können eigene Ideen ergänzen. "Abschicken" speichert die Antwort sofort; auf der Danke-Seite (optional mit Link, z. B. zur TestFlight-Beta) lassen sich danach optional Name und E-Mail zur eigenen Antwort ergänzen (der Browser bekommt dafür einen Schlüssel, der Server speichert nur dessen Hash). Für dich gibt es eine Live-Auswertung im Mentimeter-Stil.
 
-- Node >= 22.13, SQLite eingebaut (`node:sqlite`), einzige Abhängigkeit: SortableJS
-- Deutsch und Englisch (Umschalter oben rechts, Sprache wird automatisch erkannt)
+- Node >= 22.13, SQLite eingebaut (`node:sqlite`); im Browser SortableJS, d3-force und qrcode-generator, ausgeliefert aus `node_modules`
+- Inhalte einer Umfrage in genau einer Sprache, frei wählbar; Bedienelemente Deutsch und Englisch (Umschalter oben rechts, Sprache wird automatisch erkannt)
 - Hell und dunkel, mobil optimiert, Tastatur-bedienbar
 - Keine externen Requests (keine Google Fonts, kein CDN), also DSGVO-freundlich
 
@@ -11,32 +11,39 @@ Kleine selbst gehostete Umfrage-App: Teilnehmende ziehen die Zeilen einer flache
 
 | URL | Wofür |
 | --- | --- |
-| `/` | Die Umfrage |
-| `/?lang=en` | Umfrage direkt auf Englisch |
-| `/?reset` | Lokalen Entwurf und "schon abgestimmt" zurücksetzen (zum Testen) |
-| `/live` | Live-Auswertung für den Beamer, öffentlich. Tabs: **Diagramm**, **Cluster**, **QR** (bildschirmfüllend QR-Code und Adresse der Umfrage; automatisch bis zur ersten Antwort, sonst Taste Q, Klick oder Esc geht zurück) **Optionen** (Features bearbeiten) und **Antworten** (einzelne Einsendungen mit Kommentaren ansehen und löschen); die letzten beiden fragen nach dem Token. |
-| `/live?token=DEIN_TOKEN` | Wie oben, Optionen ohne Nachfrage und zusätzlich mit CSV-Button |
-| `/api/export.csv?token=DEIN_TOKEN` | Alle Antworten als CSV (öffnet sauber in Excel) |
+| `/` oder `/admin` | Alle Umfragen, neue Umfrage anlegen (fragt nach dem Token) |
+| `/<umfrage>` | Die Umfrage, z. B. `/semino` |
+| `/<umfrage>?reset` | Lokalen Entwurf und "schon abgestimmt" zurücksetzen (zum Testen) |
+| `/<umfrage>/live` | Live-Auswertung für den Beamer, öffentlich. Tabs: **Diagramm**, **Cluster**, **QR** (bildschirmfüllend QR-Code und Adresse; automatisch bis zur ersten Antwort, sonst Taste Q, Klick oder Esc geht zurück), **Optionen** (Titel, Texte, Link und Optionen bearbeiten) und **Antworten** (einzelne Einsendungen mit Kommentaren ansehen und löschen); die letzten beiden fragen nach dem Token. Der Tab steht in der Adresse (`#cluster`), ein Reload bleibt dort. |
+| `/<umfrage>/live?token=DEIN_TOKEN` | Wie oben, ohne Nachfrage und mit CSV-Button |
+| `/api/surveys/<umfrage>/export.csv?token=DEIN_TOKEN` | Alle Antworten als CSV (öffnet sauber in Excel) |
 
-Der Token schützt den CSV-Export und den Tab Antworten (beide enthalten Namen und E-Mail-Adressen) sowie das Bearbeiten der Optionen. Er wird nach dem Öffnen aus der Adresszeile entfernt.
+Der Token schützt Verwaltung, Bearbeiten, den Tab Antworten und den CSV-Export (die letzten beiden enthalten Namen und E-Mail-Adressen). Er wird nach dem Öffnen aus der Adresszeile entfernt.
 
-## Anpassen: `config.json`
+## Umfragen anlegen und bearbeiten
 
-- `title`, `intro`, `privacy`: Texte, jeweils `de` und `en` (oder einfach ein String)
-- `testflight.url`: dein TestFlight-Link, `testflight.text`: Text auf der Danke-Seite
-- `features`: Liste mit `id` (kurz, eindeutig, nicht mehr ändern sobald Antworten da sind), `title` und `desc`
+Neue Umfragen entstehen unter `/admin` mit einem Titel (die Adresse wird daraus abgeleitet) und starten ohne Optionen.
+Alles Weitere passiert im Tab **Optionen** der Live-Ansicht: Titel, Einleitung, Text und Link für die Danke-Seite, Optionen mit Titel und Beschreibung.
+Die Texte sind einfache Zeichenketten in der Sprache der Umfrage.
+Bestehende Optionen behalten beim Bearbeiten ihre `id` (Antworten verweisen darauf), neue bekommen eine aus dem Titel.
+Neue Optionen landen bei Leuten mit gespeichertem Entwurf automatisch unter "Das wäre nett".
+
+Umfragen liegen mit den Antworten in `data/responses.db`.
+Die erste Umfrage der App (vorher fest in der `config.json`) wird beim ersten Start als `semino` übernommen, beschrieben in `migrations/semino.json`.
+
+## `config.json`
+
+Nur noch Einstellungen für alle Umfragen, ohne Neustart übernommen:
+
+- `privacy`: Datenschutzhinweis neben Name und E-Mail, `de` und `en`
 - `maxCustomIdeas`: wie viele eigene Ideen jemand hinzufügen darf
-
-Änderungen an der `config.json` werden ohne Neustart übernommen. Sobald die Optionen im Tab **Optionen** der Live-Ansicht gespeichert wurden, gilt für `features` stattdessen `data/features.json`; die übrigen Texte kommen weiter aus der `config.json`. Beim Bearbeiten bleiben die `id`s bestehender Optionen erhalten, neue bekommen eine aus dem Titel. Neue Features landen bei Leuten mit gespeichertem Entwurf automatisch unter "Das wäre nett".
 
 ## Lokal starten
 
 ```bash
 npm install
 ADMIN_TOKEN=geheim node server.js
-# Umfrage:  http://localhost:3000/
-# Live:     http://localhost:3000/live
-# CSV:      http://localhost:3000/api/export.csv?token=geheim
+# Umfragen: http://localhost:3000/admin?token=geheim
 ```
 
 ## Auf dem Server (Docker)
@@ -50,7 +57,7 @@ docker compose up -d --build
 Dahinter einen Reverse Proxy (Caddy, Traefik, nginx) mit HTTPS hängen. Für die Live-Ansicht wichtig: Der Proxy darf Server-Sent Events nicht puffern. Bei nginx:
 
 ```nginx
-location /api/stream {
+location ~ ^/api/surveys/[^/]+/stream$ {
   proxy_pass http://127.0.0.1:3000;
   proxy_buffering off;
   proxy_read_timeout 1h;

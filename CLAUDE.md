@@ -9,7 +9,7 @@ Read `README.md` (pages, `config.json`, scoring, privacy) before changing behavi
 
 ```sh
 npm install
-npm run dev                      # ADMIN_TOKEN=dev, node --watch; survey on :3000, live view /live, CSV /api/export.csv?token=dev
+npm run dev                      # ADMIN_TOKEN=dev, node --watch; overview http://localhost:3000/?token=dev
 docker compose up -d --build     # production (needs ADMIN_TOKEN in .env)
 ```
 
@@ -49,21 +49,26 @@ No lint or test suite yet.
 
 ## Architecture
 
-- `server.js`: the whole backend: SQLite (`$DATA_DIR/responses.db`), hot-reloaded `config.json`,
-  aggregation/scoring, JSON API (`/api/config`, `/api/responses`), SSE (`/api/stream`), CSV export, `/healthz`.
-- `public/index.html` + `survey.js` + `style.css`: the survey (drag & drop, 💬 comment per option, own ideas, DE/EN, local draft).
-- `public/live.html` + `live.js` + `live.css`: public live view for the projector (tabs: bars, cluster, QR join screen shown until the first answer, options editor and response list with delete behind the token; own ideas).
-- `config.json`: texts, TestFlight link, default feature list; mounted read-only in Docker.
-  Once edited in the live view, `$DATA_DIR/features.json` replaces its `features`.
+- `server.js`: routing only. Pages `/` (= `/admin`, survey overview), `/<survey>`, `/<survey>/live`;
+  JSON API under `/api/surveys/<survey>/…` plus `/api/responses/<id>` (contact PATCH, admin DELETE); per-survey SSE.
+- `lib/db.js`: SQLite (`$DATA_DIR/responses.db`), tables `surveys` (id + JSON data) and `responses` (`survey_id`),
+  plus the one-off migration of the original single survey from `migrations/semino.json`.
+- `lib/survey.js`: pure logic: survey/response validation, scoring (`aggregate`), CSV.
+- `lib/http.js`: send/readBody, admin token check, in-memory rate limit.
+- `public/index.html` + `survey.js` + `style.css`: the survey (drag & drop, 💬 comment per option, own ideas, DE/EN UI, local draft per survey).
+- `public/live.html` + `live.js` + `live.css`: public live view for the projector (tabs in the URL hash: bars, d3-force cluster, QR join screen until the first answer, survey editor and response list behind the token; own ideas).
+- `public/admin.html` + `admin.js` + `admin.css`: survey list and "new survey", behind the token.
+- `config.json`: global settings only (privacy text, idea limit).
 
 ## Invariants
 
-- Feature `id`s in `config.json` never change once responses exist: answers reference them.
+- Option `id`s never change once a survey has responses: answers reference them.
+- Survey content is plain strings in the survey's own language; only the UI chrome is DE/EN.
 - No external requests from the pages (no CDN, no Google Fonts): GDPR promise in the README.
 - No IP addresses persisted; the IP lives only in memory for the rate limit.
-- The live view and `/api/stream` are public (aggregates and idea texts only);
-  names and emails leave the server only via the token-protected CSV export.
-- `/api/stream` is SSE: any proxy in front must not buffer it.
+- Live view and stream are public (aggregates and idea texts only);
+  names and emails leave the server only via the token-protected response list and CSV export.
+- The SSE stream must not be buffered by a proxy in front.
 
 ## Deployment
 
