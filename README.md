@@ -14,11 +14,11 @@ Kleine selbst gehostete Umfrage-App: Teilnehmende ziehen die Zeilen einer flache
 | `/` | Die Umfrage |
 | `/?lang=en` | Umfrage direkt auf Englisch |
 | `/?reset` | Lokalen Entwurf und "schon abgestimmt" zurücksetzen (zum Testen) |
-| `/live` | Live-Auswertung für den Beamer (Balkendiagramm + Cluster + eigene Ideen), öffentlich. Bis zur ersten Antwort zeigt sie bildschirmfüllend QR-Code und Adresse der Umfrage; danach holt der Button QR oder die Taste Q den QR-Code zurück (Klick oder Esc schließt ihn). |
-| `/live?token=DEIN_TOKEN` | Wie oben, zusätzlich mit CSV-Button |
+| `/live` | Live-Auswertung für den Beamer, öffentlich. Tabs: **Diagramm**, **Cluster**, **QR** (bildschirmfüllend QR-Code und Adresse der Umfrage; automatisch bis zur ersten Antwort, sonst Taste Q, Klick oder Esc geht zurück) und **Optionen** (Features bearbeiten, fragt nach dem Token). |
+| `/live?token=DEIN_TOKEN` | Wie oben, Optionen ohne Nachfrage und zusätzlich mit CSV-Button |
 | `/api/export.csv?token=DEIN_TOKEN` | Alle Antworten als CSV (öffnet sauber in Excel) |
 
-Der Token schützt nur den CSV-Export, weil der Namen und E-Mail-Adressen enthält. Er wird nach dem Öffnen aus der Adresszeile entfernt.
+Der Token schützt den CSV-Export (enthält Namen und E-Mail-Adressen) und das Bearbeiten der Optionen. Er wird nach dem Öffnen aus der Adresszeile entfernt.
 
 ## Anpassen: `config.json`
 
@@ -27,7 +27,7 @@ Der Token schützt nur den CSV-Export, weil der Namen und E-Mail-Adressen enthä
 - `features`: Liste mit `id` (kurz, eindeutig, nicht mehr ändern sobald Antworten da sind), `title` und `desc`
 - `maxCustomIdeas`: wie viele eigene Ideen jemand hinzufügen darf
 
-Änderungen an der `config.json` werden ohne Neustart übernommen. Neue Features landen bei Leuten mit gespeichertem Entwurf automatisch unter "Das wäre nett".
+Änderungen an der `config.json` werden ohne Neustart übernommen. Sobald die Optionen im Tab **Optionen** der Live-Ansicht gespeichert wurden, gilt für `features` stattdessen `data/features.json`; die übrigen Texte kommen weiter aus der `config.json`. Beim Bearbeiten bleiben die `id`s bestehender Optionen erhalten, neue bekommen eine aus dem Titel. Neue Features landen bei Leuten mit gespeichertem Entwurf automatisch unter "Das wäre nett".
 
 ## Lokal starten
 
