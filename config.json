@@ -23,9 +23,9 @@
   "features": [
     { "id": "unimail", "title": { "de": "Integration Unimail-Postfach", "en": "Uni mail inbox integration" } },
     { "id": "file-sharing", "title": { "de": "File Sharing", "en": "File sharing" } },
-    { "id": "kalender", "title": { "de": "Kalenderübersicht (mit cmlife)", "en": "Calendar overview (with cmlife)" } },
-    { "id": "studentenausweis", "title": { "de": "Integration Studentenausweis (Mensa-Zahlung, Ticket)", "en": "Student ID integration (Cafeteria payment, ticket)" } },
-    { "id": "buchung", "title": { "de": "Buchungsfunktion ausbauen (mehr Räume & Hochschulsport)", "en": "Extended booking (More rooms & university sports)" } },
-    { "id": "security", "title": { "de": "Security (PIN bei Abwesenheit)", "en": "Security (PIN when away)" } }
+    { "id": "kalender", "title": { "de": "Kalenderübersicht", "en": "Calendar overview" }, "desc": { "de": "mit cmlife", "en": "with cmlife" } },
+    { "id": "studentenausweis", "title": { "de": "Integration Studentenausweis", "en": "Student ID integration" }, "desc": { "de": "Mensa-Zahlung, Ticket", "en": "Cafeteria payment, ticket" } },
+    { "id": "buchung", "title": { "de": "Buchungsfunktion ausbauen", "en": "Extended booking" }, "desc": { "de": "mehr Räume & Hochschulsport", "en": "More rooms & university sports" } },
+    { "id": "security", "title": { "de": "Security", "en": "Security" }, "desc": { "de": "PIN bei Abwesenheit", "en": "PIN when away" } }
   ]
 }
