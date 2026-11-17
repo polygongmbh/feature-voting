@@ -1,4 +1,4 @@
-# Feature-Voting — self-hosted survey for ranking app features, with a live result view
+# Feature-Voting: self-hosted survey for ranking app features, with a live result view
 
 Participants sort features into "Das will ich! / Das wäre nett / Brauche ich nicht",
 the organizer watches a Mentimeter-style live view.
@@ -9,7 +9,7 @@ Read `README.md` (pages, `config.json`, scoring, privacy) before changing behavi
 
 ```sh
 npm install
-npm run dev                      # ADMIN_TOKEN=dev, node --watch; survey on :3000, live view /live?token=dev
+npm run dev                      # ADMIN_TOKEN=dev, node --watch; survey on :3000, live view /live, CSV /api/export.csv?token=dev
 docker compose up -d --build     # production (needs ADMIN_TOKEN in .env)
 ```
 
@@ -17,7 +17,7 @@ No lint or test suite yet.
 
 ## Commit & release rules
 
-- **Commit incrementally and atomically** —
+- **Commit incrementally and atomically**:
   one cohesive change per commit, never bundle unrelated changes or defer commits into one late batch.
 - **Every commit green**: lint + tests clean before each commit, not just at session end.
 - **Conventional Commits** (`feat:`, `fix:`, `test:`, `docs:`, `chore:` …).
@@ -44,30 +44,31 @@ No lint or test suite yet.
   Hand each the full spec + the relevant `docs/` pointer.
 - For "where does X live" questions, prefer a code-graph tool over growing Architecture below.
 - Large mechanical refactors go through a codemod
-  (jscodeshift / ts-morph / `gofmt -r`), not hand edits —
+  (jscodeshift / ts-morph / `gofmt -r`), not hand edits;
   write it, run it, review the diff.
 
 ## Architecture
 
-- `server.js` — the whole backend: SQLite (`$DATA_DIR/responses.db`), hot-reloaded `config.json`,
+- `server.js`: the whole backend: SQLite (`$DATA_DIR/responses.db`), hot-reloaded `config.json`,
   aggregation/scoring, JSON API (`/api/config`, `/api/responses`), SSE (`/api/stream`), CSV export, `/healthz`.
-- `public/index.html` + `survey.js` + `style.css` — the survey (drag & drop, own ideas, DE/EN, local draft).
-- `public/live.html` + `live.js` + `live.css` — token-protected live view (bars, cluster, own ideas).
-- `config.json` — texts, TestFlight link, feature list; mounted read-only in Docker.
+- `public/index.html` + `survey.js` + `style.css`: the survey (drag & drop, own ideas, DE/EN, local draft).
+- `public/live.html` + `live.js` + `live.css`: public live view for the projector (QR join screen until the first answer, bars, cluster, own ideas).
+- `config.json`: texts, TestFlight link, feature list; mounted read-only in Docker.
 
 ## Invariants
 
-- Feature `id`s in `config.json` never change once responses exist — answers reference them.
-- No external requests from the pages (no CDN, no Google Fonts) — GDPR promise in the README.
+- Feature `id`s in `config.json` never change once responses exist: answers reference them.
+- No external requests from the pages (no CDN, no Google Fonts): GDPR promise in the README.
 - No IP addresses persisted; the IP lives only in memory for the rate limit.
-- The admin token is stripped from the address bar after load, so it never shows on a projector.
+- The live view and `/api/stream` are public (aggregates and idea texts only);
+  names and emails leave the server only via the token-protected CSV export.
 - `/api/stream` is SSE: any proxy in front must not buffer it.
 
 ## Deployment
 
 - Production: poly1 (`/srv/feature-voting`), behind the Caddy container `srv-caddy-1`
   via the external Docker network `noas-shared`; https://vote.polygon.gmbh.
-- Deploy: `git push poly1 main` — the server checkout (`receive.denyCurrentBranch=updateInstead`)
+- Deploy: `git push poly1 main`; the server checkout (`receive.denyCurrentBranch=updateInstead`)
   updates its tree and a `post-receive` hook runs `docker compose up -d --build` + `/healthz`.
   Push to `origin` (GitHub) too; the server's `origin` fetches from there.
 - `.env` (ADMIN_TOKEN) and `data/` exist only on the server, never in git.
@@ -80,6 +81,6 @@ No lint or test suite yet.
 - `docs/open-points.md`: undecided questions and pending work; read before changing the live view.
 - **One fact, one home**: each topic owned by exactly one doc;
   narrative docs (history, status, plans) link into it, never restate it.
-- **Delete plan docs once shipped** — don't leave a stale third copy.
-- Before editing any `.md` file, read its first three lines — heading, scope, neighbors — keep them true in the same edit,
+- **Delete plan docs once shipped**; don't leave a stale third copy.
+- Before editing any `.md` file, read its first three lines (heading, scope, neighbors) and keep them true in the same edit,
   put what the scope excludes where the neighbors point, and keep file-describing prose to those lines.
