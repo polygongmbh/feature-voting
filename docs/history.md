@@ -94,17 +94,13 @@ v3 ist der Stand, mit dem das Repo angelegt wurde.
 
 ![Live-Ansicht, Cluster (v3)](assets/live-cluster.jpg)
 
-### PHP-Portierung, nicht im Repo
+### PHP-Portierung
 
-Für HestiaCP auf Iridion entstand eine PHP-8.1-Variante:
-eine `api.php` mit SQLite,
-Ablage in `public_html` und `private`,
-Live-Ansicht per Polling alle 2 s statt SSE.
-Sie ist nicht eingecheckt,
-weil Produktion per Docker auf poly1 läuft
-und ein zweites Frontend auseinanderlaufen würde.
-Falls PHP-Hosting wieder Thema wird:
-besser ein gemeinsames Frontend mit austauschbarer API-Basis, statt einer Kopie.
+Für HestiaCP auf Iridion entstand zuerst eine PHP-Variante mit kopiertem Frontend.
+Ins Repo kam sie nicht als Kopie,
+weil zwei Frontends auseinanderlaufen würden,
+sondern auf Janeks Wunsch (13:01, "add the php port as separate PR") als `php/`
+mit gemeinsamem `public/` und umschaltbarem Backend-Adapter (PR #2).
 
 ## Janeks allgemeine Vorgaben für Texte
 
