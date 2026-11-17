@@ -49,8 +49,40 @@ button { font: inherit; color: inherit; }
 .seg button.active { background: #262d44; color: var(--text); }
 .export { color: var(--muted); text-decoration: none; font-size: .85rem; font-weight: 700; border: 1px solid var(--border); padding: .55rem .8rem; border-radius: .6rem; }
 .export:hover { color: var(--text); }
-button.export { background: transparent; cursor: pointer; font-family: inherit; }
 .join { cursor: pointer; }
+/* header stays above the QR overlay so the tabs remain reachable */
+.head { position: relative; z-index: 40; }
+.join { padding-top: 7rem; }
+
+/* ---------- Optionen ---------- */
+.live.editing .ideas { display: none; }
+.live.editing .stage { grid-template-columns: 1fr; }
+.view-options { overflow: auto; font-size: 1rem; }
+.view-options h2 { margin: 0 0 .3rem; font-size: 1.6rem; }
+.view-options p { margin: 0 0 1rem; color: var(--muted); }
+.token-form { max-width: 34rem; }
+.opt-labels, .opt-row { display: grid; grid-template-columns: 1fr 1fr 1.4fr 1.4fr 2.6rem; gap: .5rem; align-items: center; }
+.opt-labels { color: var(--muted); font-size: .85rem; font-weight: 700; padding: 0 0 .4rem; }
+.opt-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.view-options input {
+  width: 100%; min-width: 0; padding: .6rem .75rem; border-radius: .6rem; border: 1px solid var(--border);
+  background: var(--panel-solid); color: var(--text); font: inherit;
+}
+.view-options input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.opt-row input[data-key="title"] { font-weight: 700; }
+.opt-del { border: 1px solid var(--border); background: transparent; border-radius: .6rem; height: 100%; cursor: pointer; color: var(--muted); }
+.opt-del:hover { color: #f87171; border-color: #f87171; }
+.opt-foot, .opt-row-actions { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; }
+.opt-status { flex: 1; color: var(--muted); font-weight: 600; }
+.opt-status.ok { color: var(--want); }
+.opt-status.err, .opt-error { color: #f87171; }
+.opt-btn { border: 1px solid var(--border); background: var(--panel-solid); border-radius: .6rem; padding: .6rem 1rem; font-weight: 700; cursor: pointer; }
+.opt-btn.primary { background: var(--accent); border-color: var(--accent); color: #0b0d14; }
+@media (max-width: 900px) {
+  .opt-labels { display: none; }
+  .opt-row { grid-template-columns: 1fr; padding-bottom: .6rem; border-bottom: 1px solid var(--border); }
+  .opt-del { justify-self: end; padding: .4rem .9rem; }
+}
 
 /* ---------- Bühne ---------- */
 .stage { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr minmax(16rem, 24%); gap: 1.4rem; }

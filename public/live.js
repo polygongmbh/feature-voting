@@ -20,7 +20,7 @@
   const rowEls = new Map();
   const bubbleEls = new Map();
   const bubblePos = new Map(); // id -> {x, y}
-  let view = 'ranking';
+  let view = 'qr';
 
   // Token aus der URL entfernen, damit er nicht in Screenshots/Verlauf landet
   if (params.get('token')) {
@@ -43,20 +43,19 @@
   }
   renderJoin();
 
-  // QR screen: automatic until the first answer, toggled by the QR button or the Q key afterwards
+  // QR screen is the "qr" tab: shown automatically until the first answer, Q toggles it, click/Esc goes back
   let total = 0;
-  let joinForced = false;
+  let lastView = 'ranking';
+  let autoQr = true; // still in the automatic "waiting for answers" phase
   const syncJoin = () => {
-    $('#emptyState').hidden = total > 0 && !joinForced;
+    $('#emptyState').hidden = view !== 'qr';
     $('#joinWait').hidden = total > 0;
   };
-  const toggleJoin = force => { joinForced = force ?? !joinForced; syncJoin(); };
-  $('#qrBtn').addEventListener('click', () => toggleJoin(true));
-  $('#emptyState').addEventListener('click', () => toggleJoin(false));
+  $('#emptyState').addEventListener('click', () => setView(lastView));
   document.addEventListener('keydown', e => {
-    if (e.target.closest?.('input, textarea')) return;
-    if (e.key === 'q' || e.key === 'Q') toggleJoin();
-    if (e.key === 'Escape') toggleJoin(false);
+    if (e.target.closest?.('input, textarea, select')) return;
+    if (e.key === 'q' || e.key === 'Q') setView(view === 'qr' ? lastView : 'qr');
+    if (e.key === 'Escape' && view === 'qr') setView(lastView);
   });
 
   function connect() {
@@ -76,6 +75,7 @@
     $('#title').textContent = data.title || 'Live-Auswertung';
     document.title = 'Live: ' + (data.title || 'Auswertung');
     total = data.total;
+    if (autoQr && total > 0) { autoQr = false; if (view === 'qr') setView('ranking'); }
     syncJoin();
 
     const grew = prev && data.total > prev.total;
@@ -284,12 +284,108 @@
   }
 
   // ---------- Ansicht wechseln ----------
-  document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('click', () => {
-    view = btn.dataset.view;
-    document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('active', b === btn));
-    document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
-    if (prev) { const p = prev; renderCluster(p, new Map()); renderRanking(p, new Map(p.features.map((f, i) => [f.id, { ...f, pos: i }]))); }
-  }));
+  function setView(next) {
+    if (next !== 'qr') lastView = next;
+    else if (view !== 'qr') lastView = view;
+    view = next;
+    document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+    // the QR tab is a fullscreen overlay above the last real view
+    const shown = view === 'qr' ? lastView : view;
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + shown));
+    $('#app').classList.toggle('editing', shown === 'options');
+    syncJoin();
+    if (shown === 'options') openOptions();
+    else if (prev) { const p = prev; renderCluster(p, new Map()); renderRanking(p, new Map(p.features.map((f, i) => [f.id, { ...f, pos: i }]))); }
+  }
+  document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+
+  // ---------- Optionen bearbeiten (needs the admin token) ----------
+  let optLoaded = false;
+  const slug = s => (s || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'option';
+
+  async function openOptions() {
+    if (!token) { $('#tokenForm').hidden = false; $('#optForm').hidden = true; $('#tokenInput').focus(); return; }
+    $('#tokenForm').hidden = true;
+    $('#optForm').hidden = false;
+    if (optLoaded) return;
+    const cfg = await fetch('/api/config').then(r => r.json());
+    $('#optList').replaceChildren(...cfg.features.map(optRow));
+    optLoaded = true;
+  }
+
+  function optRow(f = {}) {
+    const li = document.createElement('li');
+    li.className = 'opt-row';
+    if (f.id) li.dataset.id = f.id; // existing ids never change: answers reference them
+    const field = (key, lang, ph) => {
+      const i = document.createElement('input');
+      i.type = 'text';
+      i.dataset.key = key; i.dataset.lang = lang;
+      i.maxLength = key === 'title' ? 80 : 200;
+      i.placeholder = ph;
+      i.value = (typeof f[key] === 'string' ? (lang === 'de' ? f[key] : '') : f[key]?.[lang]) || '';
+      return i;
+    };
+    const del = document.createElement('button');
+    del.type = 'button'; del.className = 'opt-del'; del.textContent = '✕'; del.title = 'Entfernen';
+    del.addEventListener('click', () => { li.remove(); setStatus('Nicht gespeichert'); });
+    li.append(field('title', 'de', 'Titel'), field('title', 'en', 'Title'), field('desc', 'de', 'Beschreibung (optional)'), field('desc', 'en', 'Description (optional)'), del);
+    li.addEventListener('input', () => setStatus('Nicht gespeichert'));
+    return li;
+  }
+  const setStatus = (msg, kind = '') => { const s = $('#optStatus'); s.textContent = msg; s.className = 'opt-status ' + kind; };
+
+  $('#optAdd').addEventListener('click', () => {
+    const li = optRow();
+    $('#optList').append(li);
+    li.querySelector('input').focus();
+    setStatus('Nicht gespeichert');
+  });
+
+  $('#optForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const used = new Set([...$('#optList').children].map(li => li.dataset.id).filter(Boolean));
+    const features = [];
+    for (const li of $('#optList').children) {
+      const val = (k, l) => li.querySelector(`[data-key="${k}"][data-lang="${l}"]`).value.trim();
+      const title = { de: val('title', 'de'), en: val('title', 'en') };
+      if (!title.de && !title.en) continue; // empty rows are dropped
+      let id = li.dataset.id;
+      if (!id) {
+        const base = slug(title.de || title.en);
+        id = base; for (let n = 2; used.has(id); n++) id = base + '-' + n;
+        used.add(id);
+      }
+      features.push({ id, title, desc: { de: val('desc', 'de'), en: val('desc', 'en') } });
+    }
+    if (!features.length) return setStatus('Mindestens eine Option nötig', 'err');
+    setStatus('Speichert …');
+    try {
+      const res = await fetch('/api/features?token=' + encodeURIComponent(token), {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ features }),
+      });
+      if (res.status === 401) { token = ''; ss.set(TOKEN_KEY, ''); optLoaded = false; return openOptions(); }
+      const out = await res.json();
+      if (!res.ok) throw new Error(out.error);
+      $('#optList').replaceChildren(...out.features.map(optRow));
+      setStatus('Gespeichert ✓', 'ok');
+    } catch (err) {
+      setStatus('Fehler: ' + (err.message || 'nicht gespeichert'), 'err');
+    }
+  });
+
+  $('#tokenForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const t = $('#tokenInput').value.trim();
+    const ok = (await fetch('/api/admin?token=' + encodeURIComponent(t))).ok;
+    $('#tokenError').hidden = ok;
+    if (!ok) return;
+    token = t; ss.set(TOKEN_KEY, t);
+    $('#exportLink').hidden = false;
+    $('#exportLink').href = '/api/export.csv?token=' + encodeURIComponent(token);
+    openOptions();
+  });
   let resizeT;
   addEventListener('resize', () => {
     clearTimeout(resizeT);
@@ -297,4 +393,5 @@
   });
 
   connect();
+  setView('qr');
 })();

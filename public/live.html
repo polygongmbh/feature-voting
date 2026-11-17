@@ -19,8 +19,9 @@
         <div class="seg" role="tablist">
           <button type="button" data-view="ranking" class="active">Diagramm</button>
           <button type="button" data-view="cluster">Cluster</button>
+          <button type="button" data-view="qr" title="Taste Q">QR</button>
+          <button type="button" data-view="options">Optionen</button>
         </div>
-        <button type="button" id="qrBtn" class="export" title="QR-Code zeigen (Taste Q)">QR</button>
         <a id="exportLink" class="export" href="#" hidden>CSV</a>
       </div>
     </header>
@@ -46,6 +47,31 @@
           <div class="zone z-no"><span>💤 Brauche ich nicht</span></div>
         </div>
         <div class="bubbles" id="bubbles"></div>
+      </section>
+
+      <section class="view view-options" id="view-options">
+        <form id="tokenForm" class="token-form" hidden>
+          <h2>Optionen bearbeiten</h2>
+          <p>Zum Bearbeiten den Admin-Token eingeben. Er schützt die Liste, damit nicht alle die Umfrage ändern können.</p>
+          <div class="opt-row-actions">
+            <input id="tokenInput" type="password" autocomplete="current-password" placeholder="Admin-Token" required>
+            <button type="submit" class="opt-btn primary">Weiter</button>
+          </div>
+          <p id="tokenError" class="opt-error" hidden>Token ungültig.</p>
+        </form>
+        <form id="optForm" class="opt-form" hidden>
+          <div class="opt-head">
+            <h2>Optionen der Umfrage</h2>
+            <p>Änderungen gelten sofort für alle, die die Umfrage neu öffnen. Wer schon geantwortet hat, behält die alte Wertung; gelöschte Optionen fallen aus der Auswertung.</p>
+          </div>
+          <div class="opt-labels" aria-hidden="true"><span>Titel (Deutsch)</span><span>Titel (Englisch)</span><span>Beschreibung (Deutsch)</span><span>Beschreibung (Englisch)</span><span></span></div>
+          <ol id="optList" class="opt-list"></ol>
+          <div class="opt-foot">
+            <button type="button" id="optAdd" class="opt-btn">+ Option hinzufügen</button>
+            <span id="optStatus" class="opt-status" role="status"></span>
+            <button type="submit" class="opt-btn primary">Speichern</button>
+          </div>
+        </form>
       </section>
 
       <aside class="ideas">
