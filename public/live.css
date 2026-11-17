@@ -157,9 +157,10 @@ button { font: inherit; color: inherit; }
   transition: transform 1.2s cubic-bezier(.2, .8, .2, 1), width 1.2s cubic-bezier(.2, .8, .2, 1), height 1.2s cubic-bezier(.2, .8, .2, 1), background 1.2s;
   will-change: transform;
 }
-.bubble > div { width: 100%; }
+/* title centred in the bubble, score hangs below it without pushing the title up */
+.bubble > div { width: 100%; position: relative; }
 .bubble span { font-size: 1em; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-.bubble small { display: block; font-size: .8em; font-weight: 750; opacity: .9; margin-top: .2rem; }
+.bubble small { display: block; position: absolute; left: 0; right: 0; top: 100%; font-size: .8em; font-weight: 750; opacity: .9; margin-top: .2rem; }
 .bubble.flash { animation: ring 1s ease-out; }
 @keyframes ring { 0% { box-shadow: 0 0 0 0 #4338ca88, 0 6px 18px #0b122033; } 100% { box-shadow: 0 0 0 26px #4338ca00, 0 6px 18px #0b122033; } }
 
