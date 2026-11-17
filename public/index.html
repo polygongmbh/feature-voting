@@ -10,11 +10,6 @@
 <body>
   <main class="app">
     <header class="topbar">
-      <div class="steps" aria-hidden="true">
-        <span class="dot active" data-step="sort"></span>
-        <span class="dot" data-step="details"></span>
-        <span class="dot" data-step="done"></span>
-      </div>
       <button id="langBtn" class="lang-btn" type="button" aria-label="Sprache wechseln">EN</button>
     </header>
 
@@ -36,23 +31,30 @@
         <p id="ideaHint" class="idea-hint" hidden></p>
       </form>
 
+      <p class="error" id="submitError" hidden></p>
+
       <div class="actionbar">
         <div class="progress">
           <div class="progress-track" id="progressFill"><i class="pw"></i><i class="pn"></i><i class="px"></i></div>
           <span id="progressText"></span>
         </div>
-        <button id="toDetails" class="btn primary" type="button" data-i18n="next"></button>
+        <button id="submitBtn" class="btn primary" type="button" data-i18n="submit"></button>
       </div>
     </section>
 
-    <!-- Schritt 2: optionale Angaben -->
-    <section id="step-details" class="step narrow" hidden>
-      <div class="hero">
-        <h1 data-i18n="detailsTitle"></h1>
-        <p class="intro" data-i18n="detailsIntro"></p>
-      </div>
-      <div class="summary" id="summary"></div>
-      <form id="detailsForm" class="details-form" novalidate>
+    <!-- Danke + TestFlight; Name/E-Mail optional nachträglich zur schon gespeicherten Antwort -->
+    <section id="step-done" class="step narrow done" hidden>
+      <div class="confetti" aria-hidden="true">🎉</div>
+      <h1 data-i18n="thanks"></h1>
+      <p class="intro" id="tfText"></p>
+      <a id="tfLink" class="btn primary big" href="#" rel="noopener" target="_blank">
+        <span class="tf-icon" aria-hidden="true">✈️</span>
+        <span data-i18n="tfButton"></span>
+      </a>
+      <p class="tf-url" id="tfUrl"></p>
+
+      <form id="contactForm" class="details-form contact" novalidate>
+        <h2 data-i18n="contactTitle"></h2>
         <label>
           <span data-i18n="name"></span>
           <input id="nameInput" type="text" maxlength="80" autocomplete="name">
@@ -63,24 +65,11 @@
           <small class="error" id="emailError" hidden data-i18n="emailInvalid"></small>
         </label>
         <p class="privacy" id="privacy"></p>
-        <p class="error" id="submitError" hidden></p>
         <div class="form-actions">
-          <button type="button" class="btn ghost" id="backBtn" data-i18n="back"></button>
-          <button type="submit" class="btn primary" id="submitBtn" data-i18n="submit"></button>
+          <span id="contactStatus" class="contact-status" role="status"></span>
+          <button type="submit" class="btn primary" id="contactBtn" data-i18n="save"></button>
         </div>
       </form>
-    </section>
-
-    <!-- Schritt 3: Danke + TestFlight -->
-    <section id="step-done" class="step narrow done" hidden>
-      <div class="confetti" aria-hidden="true">🎉</div>
-      <h1 data-i18n="thanks"></h1>
-      <p class="intro" id="tfText"></p>
-      <a id="tfLink" class="btn primary big" href="#" rel="noopener" target="_blank">
-        <span class="tf-icon" aria-hidden="true">✈️</span>
-        <span data-i18n="tfButton"></span>
-      </a>
-      <p class="tf-url" id="tfUrl"></p>
     </section>
   </main>
 

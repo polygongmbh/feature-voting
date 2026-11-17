@@ -12,12 +12,12 @@
       wantHint: 'Ganz oben = am wichtigsten', dropHere: 'Noch leer. Hierher ziehen oder antippen.', poolEmpty: 'Alles sortiert 🎉',
       ideaPlaceholder: 'Deine Idee …', add: 'Hinzufügen', yourIdea: 'Deine Idee',
       ideaLimit: n => `Maximal ${n} eigene Ideen.`, ideaAdded: 'Idee unter "Das will ich!" eingefügt.',
-      next: 'Weiter', progress: (a, b, c) => `${a} will ich · ${b} nett · ${c} nein`,
+      progress: (a, b, c) => `${a} will ich · ${b} nett · ${c} nein`,
       needOne: 'Sortiere mindestens ein Feature ein.',
       unsortedLeft: n => `${n} noch offen. Trotzdem weiter?`,
-      detailsTitle: 'Fast geschafft', detailsIntro: 'Name und E-Mail sind freiwillig. Du kannst auch einfach anonym abschicken.',
+      contactTitle: 'Dürfen wir bei Rückfragen auf dich zukommen?', save: 'Speichern', saved: 'Gespeichert ✓',
       name: 'Name (optional)', email: 'E-Mail (optional)', emailInvalid: 'Die E-Mail-Adresse sieht nicht richtig aus.',
-      back: 'Zurück', submit: 'Abschicken', sending: 'Wird gesendet …',
+      submit: 'Abschicken', sending: 'Wird gesendet …',
       submitFail: 'Das hat nicht geklappt. Bitte versuch es nochmal.',
       thanks: 'Danke dir!', tfButton: 'Zur TestFlight-Beta',
       backToPool: 'Zurück in den Stapel', toTop: 'Ganz nach oben', delete: 'Idee löschen', close: 'Schließen',
@@ -32,12 +32,12 @@
       wantHint: 'Top = most important', dropHere: 'Empty. Drag here or tap a card.', poolEmpty: 'All sorted 🎉',
       ideaPlaceholder: 'Your idea …', add: 'Add', yourIdea: 'Your idea',
       ideaLimit: n => `Up to ${n} ideas of your own.`, ideaAdded: 'Idea added under "I want this!".',
-      next: 'Next', progress: (a, b, c) => `${a} want · ${b} nice · ${c} no`,
+      progress: (a, b, c) => `${a} want · ${b} nice · ${c} no`,
       needOne: 'Sort at least one feature.',
       unsortedLeft: n => `${n} still open. Continue anyway?`,
-      detailsTitle: 'Almost done', detailsIntro: 'Name and email are optional. You can also submit anonymously.',
+      contactTitle: 'May we get back to you with questions?', save: 'Save', saved: 'Saved ✓',
       name: 'Name (optional)', email: 'Email (optional)', emailInvalid: "That email address doesn't look right.",
-      back: 'Back', submit: 'Submit', sending: 'Sending …',
+      submit: 'Submit', sending: 'Sending …',
       submitFail: "That didn't work. Please try again.",
       thanks: 'Thank you!', tfButton: 'Join the TestFlight beta',
       backToPool: 'Back to the pile', toTop: 'Move to top', delete: 'Delete idea', close: 'Close',
@@ -343,62 +343,32 @@
 
   // ---------- Schritte ----------
   function showStep(step) {
-    for (const s of ['sort', 'details', 'done']) $(`#step-${s}`).hidden = s !== step;
-    $$('.steps .dot').forEach((d, i) => d.classList.toggle('active', i <= ['sort', 'details', 'done'].indexOf(step)));
-    if (step === 'details') renderSummary();
+    for (const s of ['sort', 'done']) $(`#step-${s}`).hidden = s !== step;
+    // name/email can only be added when we still know this browser's response key
+    if (step === 'done') $('#contactForm').hidden = !store.get(DONE_KEY)?.key;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function renderSummary() {
-    const box = $('#summary');
-    box.replaceChildren();
-    for (const b of ['want', 'nice', 'no']) {
-      if (!state.order[b].length) continue;
-      const group = document.createElement('div');
-      group.className = `sum-group sum-${b}`;
-      const h = document.createElement('h3');
-      h.textContent = t(b);
-      group.appendChild(h);
-      const ol = document.createElement(b === 'want' ? 'ol' : 'ul');
-      for (const id of state.order[b]) {
-        const li = document.createElement('li');
-        const item = featureById(id);
-        li.textContent = isCustom(id) ? item.text : ct(item.title);
-        ol.appendChild(li);
-      }
-      group.appendChild(ol);
-      box.appendChild(group);
-    }
-  }
-
-  async function submit(e) {
-    e.preventDefault();
-    const email = $('#emailInput').value.trim();
-    const emailOk = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    $('#emailError').hidden = emailOk;
-    if (!emailOk) { $('#emailInput').focus(); return; }
-
+  // Submitting stores the answer right away; name/email are optional afterwards
+  async function submit() {
     const btn = $('#submitBtn');
     btn.disabled = true;
     btn.textContent = t('sending');
     $('#submitError').hidden = true;
-
-    const usedCustom = state.custom; // auch unsortierte Ideen mitschicken
     try {
       const res = await fetch('/api/responses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           buckets: { want: state.order.want, nice: state.order.nice, no: state.order.no },
-          custom: usedCustom,
+          custom: state.custom, // auch unsortierte Ideen mitschicken
           comments: Object.fromEntries(Object.entries(state.comments).map(([k, v]) => [k, v.trim()]).filter(([, v]) => v)),
-          name: $('#nameInput').value.trim(),
-          email,
           lang,
         }),
       });
       if (!res.ok) throw new Error(String(res.status));
-      store.set(DONE_KEY, true);
+      const { id, key } = await res.json();
+      store.set(DONE_KEY, { id, key });
       store.del(DRAFT_KEY);
       showStep('done');
     } catch {
@@ -407,6 +377,33 @@
     } finally {
       btn.disabled = false;
       btn.textContent = t('submit');
+    }
+  }
+
+  async function saveContact(e) {
+    e.preventDefault();
+    const done = store.get(DONE_KEY);
+    const email = $('#emailInput').value.trim();
+    const emailOk = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    $('#emailError').hidden = emailOk;
+    if (!emailOk) { $('#emailInput').focus(); return; }
+    const btn = $('#contactBtn');
+    btn.disabled = true;
+    $('#contactStatus').textContent = '';
+    try {
+      const res = await fetch('/api/responses/' + encodeURIComponent(done.id), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: done.key, name: $('#nameInput').value.trim(), email }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      $('#contactStatus').textContent = t('saved');
+      $('#contactStatus').className = 'contact-status ok';
+    } catch {
+      $('#contactStatus').textContent = t('submitFail');
+      $('#contactStatus').className = 'contact-status error';
+    } finally {
+      btn.disabled = false;
     }
   }
 
@@ -494,9 +491,9 @@
       toast(t('ideaAdded'));
     });
 
-    $('#toDetails').addEventListener('click', () => showStep('details'));
-    $('#backBtn').addEventListener('click', () => showStep('sort'));
-    $('#detailsForm').addEventListener('submit', submit);
+    $('#submitBtn').addEventListener('click', submit);
+    $('#contactForm').addEventListener('submit', saveContact);
+    $('#contactForm').addEventListener('input', () => { $('#contactStatus').textContent = ''; });
   }
 
   init();
