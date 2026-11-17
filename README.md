@@ -1,6 +1,6 @@
 # Feature-Voting
 
-Kleine selbst gehostete Umfrage-App: Teilnehmende sortieren eine vertikale Liste per Griff ≡ (oder Antippen) in die Abschnitte **Das will ich! / Das wäre nett / Brauche ich nicht**. Alle Features starten in der Mitte ("Das wäre nett"). Teilnehmende können eigene Ideen ergänzen und optional Name und E-Mail angeben. Am Ende gibt es den TestFlight-Link. Für dich gibt es eine Live-Auswertung im Mentimeter-Stil.
+Kleine selbst gehostete Umfrage-App: Teilnehmende ziehen die Zeilen einer flachen, vertikalen Liste in die Abschnitte **Das will ich! / Das wäre nett / Brauche ich nicht** (die ganze Zeile ist ziehbar, auf dem Handy kurz halten; Antippen öffnet weitere Optionen). Alle Features starten in der Mitte ("Das wäre nett"), für alle in einer eigenen, zufälligen Reihenfolge, damit die Position die Wertung nicht beeinflusst. Teilnehmende können eigene Ideen ergänzen und optional Name und E-Mail angeben. Am Ende gibt es den TestFlight-Link. Für dich gibt es eine Live-Auswertung im Mentimeter-Stil.
 
 - Node >= 22.13, SQLite eingebaut (`node:sqlite`), einzige Abhängigkeit: SortableJS
 - Deutsch und Englisch (Umschalter oben rechts, Sprache wird automatisch erkannt)
@@ -14,7 +14,7 @@ Kleine selbst gehostete Umfrage-App: Teilnehmende sortieren eine vertikale Liste
 | `/` | Die Umfrage |
 | `/?lang=en` | Umfrage direkt auf Englisch |
 | `/?reset` | Lokalen Entwurf und "schon abgestimmt" zurücksetzen (zum Testen) |
-| `/live?token=DEIN_TOKEN` | Live-Auswertung für den Beamer (Balkendiagramm + Cluster + eigene Ideen) |
+| `/live?token=DEIN_TOKEN` | Live-Auswertung für den Beamer (Balkendiagramm + Cluster + eigene Ideen). Bis zur ersten Antwort zeigt sie bildschirmfüllend QR-Code und Adresse der Umfrage. |
 | `/api/export.csv?token=DEIN_TOKEN` | Alle Antworten als CSV (öffnet sauber in Excel) |
 
 Der Token wird nach dem Öffnen aus der Adresszeile entfernt, damit er nicht auf dem Beamer oder in Screenshots landet.
