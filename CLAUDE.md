@@ -9,7 +9,7 @@ Read `README.md` (pages, `config.json`, scoring, privacy) before changing behavi
 
 ```sh
 npm install
-npm run dev                      # ADMIN_TOKEN=dev, node --watch; overview http://localhost:3000/?token=dev
+npm run dev                      # ADMIN_TOKEN=dev, node --watch; overview http://localhost:3000/admin?token=dev
 docker compose up -d --build     # production (needs ADMIN_TOKEN in .env)
 ```
 
@@ -49,7 +49,7 @@ No lint or test suite yet.
 
 ## Architecture
 
-- `server.js`: routing only. Pages `/` (= `/admin`, survey overview), `/<survey>`, `/<survey>/live`;
+- `server.js`: routing only. Pages `/` (intro page, `public/home.html`), `/admin` (survey overview), `/<survey>`, `/<survey>/live`;
   JSON API under `/api/surveys/<survey>/…` plus `/api/responses/<id>` (contact PATCH, admin DELETE); per-survey SSE.
 - `lib/db.js`: SQLite (`$DATA_DIR/responses.db`), tables `surveys` (id + JSON data) and `responses` (`survey_id`),
   plus the one-off migration of the original single survey from `migrations/semino.json`.

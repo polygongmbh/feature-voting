@@ -11,7 +11,8 @@ Kleine selbst gehostete Umfrage-App für beliebig viele Umfragen: Teilnehmende z
 
 | URL | Wofür |
 | --- | --- |
-| `/` oder `/admin` | Alle Umfragen, neue Umfrage anlegen (fragt nach dem Token) |
+| `/` | Startseite: was das Tool macht und wie es funktioniert |
+| `/admin` | Alle Umfragen, neue Umfrage anlegen (fragt nach dem Token) |
 | `/<umfrage>` | Die Umfrage, z. B. `/semino` |
 | `/<umfrage>?reset` | Lokalen Entwurf und "schon abgestimmt" zurücksetzen (zum Testen) |
 | `/<umfrage>/live` | Live-Auswertung für den Beamer, öffentlich. Tabs: **Diagramm**, **Cluster**, **QR** (bildschirmfüllend QR-Code und Adresse; automatisch bis zur ersten Antwort, sonst Taste Q, Klick oder Esc geht zurück), **Optionen** (Titel, Texte, Link und Optionen bearbeiten) und **Antworten** (einzelne Einsendungen mit Kommentaren ansehen und löschen); die letzten beiden fragen nach dem Token. Der Tab steht in der Adresse (`#cluster`), ein Reload bleibt dort. |
